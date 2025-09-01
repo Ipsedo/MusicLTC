@@ -4,6 +4,7 @@ import torch as th
 from music_ltc.networks.denoiser import Denoiser
 
 
+# pylint: disable=duplicate-code
 @pytest.mark.parametrize("steps", [4, 6])
 @pytest.mark.parametrize("batch_size", [1, 2])
 @pytest.mark.parametrize("length", [16, 32])

@@ -1,6 +1,7 @@
 import argparse
 
 from .data.create_dataset import create_dataset
+from .train import train
 
 
 def main() -> None:
@@ -15,8 +16,11 @@ def main() -> None:
         "--sample-rate", type=int, default=16000
     )
     create_dataset_parser.add_argument(
-        "--sequence-length", type=int, default=160000
+        "--sequence-length", type=int, default=2 ^ 17
     )
+
+    train_parser = sub_parsers.add_parser(name="train")
+    train_parser.add_argument("--dummy", type=int, default=0)
 
     args = parser.parse_args()
 
@@ -27,6 +31,8 @@ def main() -> None:
             args.sample_rate,
             args.sequence_length,
         )
+    elif args.mode == "train":
+        train()
     else:
         parser.error(f"Invalid mode : {args.mode}")
 

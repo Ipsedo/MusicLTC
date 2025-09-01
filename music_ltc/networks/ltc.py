@@ -59,7 +59,7 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         self.__to_first_token = nn.Sequential(
             nn.Linear(time_size, hidden_channels[-1][1]),
             nn.Mish(),
-            nn.InstanceNorm1d(hidden_channels[-1][1]),
+            nn.LayerNorm(hidden_channels[-1][1]),
         )
 
     # pylint: disable=arguments-renamed
