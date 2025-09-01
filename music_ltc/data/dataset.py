@@ -28,7 +28,7 @@ class AudioDataset(Dataset):
             join(self.__dataset_path, self.__all_files[index])
         )
 
-        return waveform.transpose(0, 1)
+        return waveform
 
     def __len__(self) -> int:
         return len(self.__all_files)

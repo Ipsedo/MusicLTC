@@ -16,7 +16,7 @@ def main() -> None:
         "--sample-rate", type=int, default=16000
     )
     create_dataset_parser.add_argument(
-        "--sequence-length", type=int, default=2 ^ 17
+        "--sequence-length", type=int, default=2**17
     )
 
     train_parser = sub_parsers.add_parser(name="train")
