@@ -1,0 +1,13 @@
+torch
+torchaudio
+git+https://github.com/Ipsedo/LiquidNetworks
+pydantic
+numpy
+pandas
+tqdm
+mlflow
+
+pre-commit
+mypy
+pylint
+pytest
