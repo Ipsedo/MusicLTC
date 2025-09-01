@@ -35,7 +35,7 @@ def create_dataset(
         for sample in split_waveforms:
             output_file_path = join(dataset_output_dir, f"waveform_{idx}.pt")
 
-            th.save(sample.transpose(0, 1), output_file_path)
+            th.save(sample.transpose(0, 1).clone(), output_file_path)
 
             idx += 1
 
