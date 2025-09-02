@@ -16,10 +16,12 @@ def train() -> None:
     mlflow.set_experiment("music_diffusion_ltc")
 
     cuda = True
-    dataset_path = "/home/samuel/PycharmProjects/MusicLTC/outputs/test_dataset"
-    output_dir = "/home/samuel/PycharmProjects/MusicLTC/outputs/test_output"
+    dataset_path = (
+        "/run/media/samuel/M2_nvme_gen4/music_diffusion/bach_waveform_16000Hz"
+    )
+    output_dir = "/home/samuel/PycharmProjects/MusicLTC/outputs/train_bach"
     steps = 1024
-    batch_size = 4
+    batch_size = 32
     epochs = 100
     nb_samples = 3
     in_channels = 2
@@ -35,7 +37,15 @@ def train() -> None:
             steps,
             16,
             in_channels,
-            [(8, 16), (16, 32), (32, 64), (64, 128), (128, 256)],
+            [
+                (8, 16),
+                (16, 32),
+                (32, 64),
+                (64, 64),
+                (64, 96),
+                (96, 128),
+                (128, 128),
+            ],
             64,
             6,
             1.0,
@@ -116,8 +126,8 @@ def train() -> None:
             # save and generate
             x_t = th.randn(
                 nb_samples,
+                2**17,
                 in_channels,
-                2 ^ 17,
                 device=device,
             )
 
@@ -135,4 +145,5 @@ def train() -> None:
                     join(output_dir, f"audio_{e}_{i}.wav"),
                     waveform_tensor,
                     sample_rate,
+                    channels_first=False,
                 )
