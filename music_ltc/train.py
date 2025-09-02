@@ -7,87 +7,69 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from .data.dataset import AudioDataset
-from .networks.denoiser import Denoiser
 from .networks.losses import mse, normal_kl_div
-from .networks.noiser import Noiser
+from .options import ModelOptions, TrainOptions
 
 
-def train() -> None:
+def train_model(
+    model_options: ModelOptions, train_options: TrainOptions
+) -> None:
     mlflow.set_experiment("music_diffusion_ltc")
-
-    cuda = True
-    dataset_path = (
-        "/run/media/samuel/M2_nvme_gen4/music_diffusion/bach_waveform_16000Hz"
-    )
-    output_dir = "/home/samuel/PycharmProjects/MusicLTC/outputs/train_bach"
-    steps = 1024
-    batch_size = 32
-    epochs = 100
-    nb_samples = 3
-    in_channels = 2
-    sample_rate = 16000
 
     with mlflow.start_run(run_name="train_debug"):
 
-        if cuda:
+        mlflow.log_params(
+            {
+                **dict(model_options),
+                **dict(train_options),
+            }
+        )
+
+        if train_options.cuda:
             th.backends.cudnn.benchmark = True
 
-        noiser = Noiser(steps)
-        denoiser = Denoiser(
-            steps,
-            16,
-            in_channels,
-            [
-                (8, 16),
-                (16, 32),
-                (32, 64),
-                (64, 64),
-                (64, 96),
-                (96, 128),
-                (128, 128),
-            ],
-            64,
-            6,
-            1.0,
-        )
+        noiser = model_options.get_noiser()
+        denoiser = model_options.get_denoiser()
 
         print(f"Parameters count = {denoiser.count_parameters()}")
 
         optim = th.optim.Adam(
             denoiser.parameters(),
-            lr=1e-4,
+            lr=train_options.learning_rate,
         )
 
-        if cuda:
+        if train_options.cuda:
             noiser.cuda()
             denoiser.cuda()
 
-        dataset = AudioDataset(dataset_path)
+        dataset = AudioDataset(train_options.dataset_path)
 
         dataloader = DataLoader(
             dataset,
-            batch_size=batch_size,
+            batch_size=train_options.batch_size,
             shuffle=True,
             num_workers=6,
             drop_last=True,
             pin_memory=True,
         )
 
-        device = "cuda" if cuda else "cpu"
+        device = th.device("cuda" if train_options.cuda else "cpu")
 
-        for e in range(epochs):
+        nb_batches = len(dataset) // train_options.batch_size
+
+        for e in range(train_options.epochs):
 
             tqdm_bar = tqdm(dataloader)
 
-            for x_0 in tqdm_bar:
+            for i, x_0 in enumerate(tqdm_bar):
 
-                if cuda:
+                if train_options.cuda:
                     x_0 = x_0.cuda()
 
                 t = th.randint(
                     0,
-                    steps,
-                    (batch_size,),
+                    model_options.diffusion_steps,
+                    (train_options.batch_size,),
                     device=device,
                 )
 
@@ -116,18 +98,37 @@ def train() -> None:
                 grad_norm = denoiser.grad_norm()
 
                 tqdm_bar.set_description(
-                    f"Epoch {e} / {epochs - 1} - "
+                    f"Epoch {e} / {train_options.epochs - 1} - "
                     f"loss = {loss.mean().item():.6f}, "
                     f"mse = {loss_mse.mean().item():.6f}, "
                     f"kl = {loss_kl.mean().item():.6f}, "
                     f"grad_norm = {grad_norm:.6f}"
                 )
 
+                mlflow.log_metrics(
+                    {
+                        "loss": loss.mean().item(),
+                        "mse": loss_mse.mean().item(),
+                        "kl": loss_kl.mean().item(),
+                        "grad_norm": grad_norm,
+                    },
+                    step=e * nb_batches + i,
+                )
+
             # save and generate
+            th.save(
+                denoiser.state_dict(),
+                join(train_options.output_dir, f"denoiser_{e}.pth"),
+            )
+            th.save(
+                noiser.state_dict(),
+                join(train_options.output_dir, f"noiser_{e}.pth"),
+            )
+
             x_t = th.randn(
-                nb_samples,
+                train_options.nb_audios_to_generate,
                 2**17,
-                in_channels,
+                model_options.channels,
                 device=device,
             )
 
@@ -136,14 +137,14 @@ def train() -> None:
 
             th.save(
                 x_0,
-                join(output_dir, f"waveform_{e}.pt"),
+                join(train_options.output_dir, f"waveform_{e}.pt"),
             )
 
-            for i in range(nb_samples):
+            for i in range(train_options.nb_audios_to_generate):
                 waveform_tensor = x_0[i].detach().cpu()
                 th_audio.save(
-                    join(output_dir, f"audio_{e}_{i}.wav"),
+                    join(train_options.output_dir, f"audio_{e}_{i}.wav"),
                     waveform_tensor,
-                    sample_rate,
+                    train_options.sample_rate,
                     channels_first=False,
                 )

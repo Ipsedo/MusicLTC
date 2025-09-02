@@ -5,7 +5,7 @@ import torch as th
 from torch import nn
 
 
-class _BaseConv(Protocol):
+class TimeModuleProtocol(Protocol):
     def get_out_channels(self) -> int:
         pass
 
@@ -41,7 +41,7 @@ class TimeWrapper(nn.Module):
     def __init__(
         self,
         time_size: int,
-        conv: _BaseConv,
+        conv: TimeModuleProtocol,
     ) -> None:
         super().__init__()
 
@@ -72,7 +72,7 @@ class SequentialTimeWrapper(nn.ModuleList):
     def __init__(
         self,
         time_size: int,
-        conv_layers: Iterable[_BaseConv],
+        conv_layers: Iterable[TimeModuleProtocol],
     ):
         super().__init__(TimeWrapper(time_size, c) for c in conv_layers)
 

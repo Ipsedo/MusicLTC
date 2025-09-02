@@ -99,12 +99,26 @@ class CausalConvTranspose1d(nn.ConvTranspose1d):
         return out
 
 
-class CausalConvTransposeBlock(nn.Sequential):
+class CausalConvTransposeStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
             CausalConvTranspose1d(in_channels, in_channels, 3, 2, 1, 1),
             nn.Mish(),
             nn.InstanceNorm1d(in_channels),
+            CausalConvTranspose1d(in_channels, out_channels, 3, 1, 1, 0),
+            nn.Mish(),
+            nn.InstanceNorm1d(out_channels),
+        )
+
+        self.__out_channels = out_channels
+
+    def get_out_channels(self) -> int:
+        return self.__out_channels
+
+
+class CausalConvTransposeBlock(nn.Sequential):
+    def __init__(self, in_channels: int, out_channels: int) -> None:
+        super().__init__(
             CausalConvTranspose1d(in_channels, out_channels, 3, 1, 1, 0),
             nn.Mish(),
             nn.InstanceNorm1d(out_channels),

@@ -1,6 +1,5 @@
 import torch as th
 from liquid_networks.networks import AbstractLiquidRecurrent
-from torch import nn
 from torch.nn import functional as th_f
 
 from .conv import (
@@ -8,6 +7,7 @@ from .conv import (
     CausalConvStrideBlock,
     CausalConvTranspose1d,
     CausalConvTransposeBlock,
+    CausalConvTransposeStrideBlock,
 )
 from .time import SequentialTimeWrapper, SinusoidTimeEmbedding, TimeWrapper
 
@@ -41,26 +41,23 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
             [CausalConvStrideBlock(c_i, c_o) for c_i, c_o in hidden_channels],
         )
 
-        self.__to_decoder = nn.Sequential(
-            CausalConvTranspose1d(neuron_number, hidden_channels[-1][1], 3, 1),
-            nn.Mish(),
-            nn.InstanceNorm1d(hidden_channels[-1][1]),
+        self.__to_decoder = TimeWrapper(
+            time_size,
+            CausalConvTransposeBlock(neuron_number, hidden_channels[-1][1]),
         )
-        self.__decoder = nn.Sequential(
-            *[
-                CausalConvTransposeBlock(c_i, c_o)
+        self.__decoder = SequentialTimeWrapper(
+            time_size,
+            [
+                CausalConvTransposeStrideBlock(c_i, c_o)
                 for c_o, c_i in reversed(hidden_channels)
-            ]
+            ],
         )
-        self.__last_layer = CausalConvTranspose1d(
-            hidden_channels[0][0], channels * 2, 3, 1
+        self.__last_layer = TimeWrapper(
+            time_size,
+            CausalConvTranspose1d(hidden_channels[0][0], channels * 2, 3, 1),
         )
 
-        self.__to_first_token = nn.Sequential(
-            nn.Linear(time_size, hidden_channels[-1][1]),
-            nn.Mish(),
-            nn.LayerNorm(hidden_channels[-1][1]),
-        )
+        self.__time_emb: th.Tensor = th.empty(1)
 
     # pylint: disable=arguments-renamed
     def _process_input(
@@ -68,21 +65,25 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
     ) -> th.Tensor:
         i, t = input_and_diffusion_step
 
-        time_emb = self.__embedding(t)
+        self.__time_emb = self.__embedding(t)
 
-        encoded_input = self.__first_layer(i.transpose(1, 2), time_emb)
-        encoded_input = self.__encoder(encoded_input, time_emb).transpose(1, 2)
+        encoded_input: th.Tensor = self.__first_layer(
+            i.transpose(1, 2), self.__time_emb
+        )
+        encoded_input = self.__encoder(
+            encoded_input, self.__time_emb
+        ).transpose(1, 2)
 
-        first_token = self.__to_first_token(time_emb).unsqueeze(1)
-
-        return th.cat([first_token, encoded_input], dim=1)
+        return encoded_input
 
     def _output_processing(self, out: th.Tensor) -> th.Tensor:
         return out
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
-        stacked_outputs = th.stack(outputs[1:], dim=-1)
-        decoded_outputs: th.Tensor = self.__to_decoder(stacked_outputs)
-        decoded_outputs = self.__decoder(decoded_outputs)
-        decoded_outputs = self.__last_layer(decoded_outputs)
+        stacked_outputs = th.stack(outputs, dim=-1)
+        decoded_outputs: th.Tensor = self.__to_decoder(
+            stacked_outputs, self.__time_emb
+        )
+        decoded_outputs = self.__decoder(decoded_outputs, self.__time_emb)
+        decoded_outputs = self.__last_layer(decoded_outputs, self.__time_emb)
         return decoded_outputs.transpose(1, 2)

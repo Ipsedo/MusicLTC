@@ -5,7 +5,7 @@ from music_ltc.networks.conv import (
     CausalConv1d,
     CausalConvStrideBlock,
     CausalConvTranspose1d,
-    CausalConvTransposeBlock,
+    CausalConvTransposeStrideBlock,
 )
 
 
@@ -67,7 +67,7 @@ def test_causal_conv_tr_1d(
 def test_causal_conv_tr_block(
     in_channels: int, out_channels: int, length: int, batch_size: int
 ) -> None:
-    conv_tr = CausalConvTransposeBlock(in_channels, out_channels)
+    conv_tr = CausalConvTransposeStrideBlock(in_channels, out_channels)
 
     x = th.randn(batch_size, in_channels, length)
 
