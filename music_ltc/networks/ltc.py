@@ -33,7 +33,10 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         )
         self.__encoder = SequentialTimeWrapper(
             time_size,
-            [CausalConvStrideBlock(c_i, c_o) for c_i, c_o in hidden_channels],
+            [
+                CausalConvStrideBlock(c_i, c_o, 4)
+                for c_i, c_o in hidden_channels
+            ],
         )
 
         self.__to_decoder = TimeWrapper(
@@ -44,7 +47,7 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         self.__decoder = SequentialTimeWrapper(
             time_size,
             [
-                CausalConvTransposeStrideBlock(c_i, c_o)
+                CausalConvTransposeStrideBlock(c_i, c_o, 4)
                 for c_o, c_i in reversed(hidden_channels)
             ],
         )
