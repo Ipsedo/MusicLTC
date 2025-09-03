@@ -45,7 +45,6 @@ class Noiser(Diffuser):
         assert len(t.size()) == 1
 
         assert x_t.size(0) == t.size(0)
-        assert x_0.size(0) == t.size(0)
-        assert x_0.size() == x_t.size()
+        assert x_t.size() == x_0.size()
 
         return self.__mu(x_t, x_0, t), self.__var(t)

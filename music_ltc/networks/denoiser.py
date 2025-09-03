@@ -142,6 +142,7 @@ class Denoiser(Diffuser):
         assert len(eps_theta.size()) == 3
         assert len(v_theta.size()) == 3
 
+        assert x_t.size(0) == t.size(0)
         assert x_t.size(2) == self.__channels
         assert x_t.size() == eps_theta.size()
         assert x_t.size() == v_theta.size()
