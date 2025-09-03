@@ -1,13 +1,9 @@
 import torch as th
 from liquid_networks.networks import AbstractLiquidRecurrent
-from torch import nn
 from torch.nn import functional as th_f
 
-from .conv import (
-    CausalConvStrideBlock,
-    CausalConvTransposeBlock,
-    CausalConvTransposeStrideBlock,
-)
+from .causal_conv import CausalConvStrideBlock, CausalConvTransposeStrideBlock
+from .conv import Conv1dBlock, Conv1dOutputBlock
 from .time import SequentialTimeWrapper, SinusoidTimeEmbedding, TimeWrapper
 
 
@@ -32,9 +28,8 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
 
         self.__embedding = SinusoidTimeEmbedding(nb_diffusion_steps, time_size)
 
-        self.__first_layer = nn.Sequential(
-            nn.Conv1d(channels, hidden_channels[0][0], 1, 1, 0),
-            nn.Mish(),
+        self.__first_layer = TimeWrapper(
+            time_size, Conv1dBlock(channels, hidden_channels[0][0], 1)
         )
         self.__encoder = SequentialTimeWrapper(
             time_size,
@@ -43,8 +38,9 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
 
         self.__to_decoder = TimeWrapper(
             time_size,
-            CausalConvTransposeBlock(neuron_number, hidden_channels[-1][1]),
+            Conv1dBlock(neuron_number, hidden_channels[-1][1], 1),
         )
+
         self.__decoder = SequentialTimeWrapper(
             time_size,
             [
@@ -52,8 +48,9 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
                 for c_o, c_i in reversed(hidden_channels)
             ],
         )
-        self.__last_layer = nn.Conv1d(
-            hidden_channels[0][0], channels * 2, 1, 1, 0
+        self.__last_layer = TimeWrapper(
+            time_size,
+            Conv1dOutputBlock(hidden_channels[0][0], channels * 2, 1),
         )
 
         self.__time_emb: th.Tensor = th.empty(1)
@@ -62,16 +59,18 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
     def _process_input(
         self, input_and_diffusion_step: tuple[th.Tensor, th.Tensor]
     ) -> th.Tensor:
-        i, t = input_and_diffusion_step
+        input_audio, t = input_and_diffusion_step
+
+        transposed_input = input_audio.transpose(1, 2)
 
         self.__time_emb = self.__embedding(t)
 
-        encoded_input: th.Tensor = self.__first_layer(i.transpose(1, 2))
-        encoded_input = self.__encoder(
-            encoded_input, self.__time_emb
-        ).transpose(1, 2)
+        encoded_input: th.Tensor = self.__first_layer(
+            transposed_input, self.__time_emb
+        )
+        encoded_input = self.__encoder(encoded_input, self.__time_emb)
 
-        return encoded_input
+        return encoded_input.transpose(1, 2)
 
     def _output_processing(self, out: th.Tensor) -> th.Tensor:
         return out
@@ -82,5 +81,5 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
             stacked_outputs, self.__time_emb
         )
         decoded_outputs = self.__decoder(decoded_outputs, self.__time_emb)
-        decoded_outputs = self.__last_layer(decoded_outputs)
+        decoded_outputs = self.__last_layer(decoded_outputs, self.__time_emb)
         return decoded_outputs.transpose(1, 2)

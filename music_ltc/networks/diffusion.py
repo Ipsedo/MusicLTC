@@ -7,8 +7,7 @@ BIN_SIZE = 1 / 128
 
 
 def select_time_scheduler(factor: th.Tensor, t: th.Tensor) -> th.Tensor:
-    factor = factor[t, None, None]
-    return factor
+    return factor[t, None, None]
 
 
 class Diffuser(ABC, nn.Module):

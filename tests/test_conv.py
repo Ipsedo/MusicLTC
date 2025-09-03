@@ -1,7 +1,7 @@
 import pytest
 import torch as th
 
-from music_ltc.networks.conv import (
+from music_ltc.networks.causal_conv import (
     CausalConv1d,
     CausalConvStrideBlock,
     CausalConvTranspose1d,

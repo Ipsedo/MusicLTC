@@ -11,12 +11,8 @@ class Noiser(Diffuser):
         assert len(t.size()) == 1
         assert x_0.size(0) == t.size(0)
 
-        b, c, l = x_0.size()
-
-        device = "cuda" if next(self.buffers()).is_cuda else "cpu"
-
         if eps is None:
-            eps = th.randn(b, c, l, device=device)
+            eps = th.rand_like(x_0, device=next(self.buffers()).device)
 
         sqrt_alphas_cum_prod = select_time_scheduler(
             self._sqrt_alphas_cum_prod, t
@@ -47,5 +43,9 @@ class Noiser(Diffuser):
         assert len(x_t.size()) == 3
         assert len(x_0.size()) == 3
         assert len(t.size()) == 1
+
+        assert x_t.size(0) == t.size(0)
+        assert x_0.size(0) == t.size(0)
+        assert x_0.size() == x_t.size()
 
         return self.__mu(x_t, x_0, t), self.__var(t)
