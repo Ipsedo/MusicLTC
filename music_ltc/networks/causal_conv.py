@@ -54,23 +54,6 @@ class CausalConvStrideBlock(nn.Sequential):
         return self.__out_channels
 
 
-class CausalConvBlock(nn.Sequential):
-    def __init__(
-        self, in_channels: int, out_channels: int, kernel_size: int = 3
-    ) -> None:
-        super().__init__(
-            weight_norm(
-                CausalConv1d(in_channels, out_channels, kernel_size, 1, 1)
-            ),
-            nn.Mish(),
-        )
-
-        self.__out_channels = out_channels
-
-    def get_out_channels(self) -> int:
-        return self.__out_channels
-
-
 # Transposed Conv
 
 
@@ -118,25 +101,6 @@ class CausalConvTransposeStrideBlock(nn.Sequential):
                 )
             ),
             nn.Mish(),
-            weight_norm(
-                CausalConvTranspose1d(
-                    in_channels, out_channels, kernel_size, 1, 1, 0
-                )
-            ),
-            nn.Mish(),
-        )
-
-        self.__out_channels = out_channels
-
-    def get_out_channels(self) -> int:
-        return self.__out_channels
-
-
-class CausalConvTransposeBlock(nn.Sequential):
-    def __init__(
-        self, in_channels: int, out_channels: int, kernel_size: int = 3
-    ) -> None:
-        super().__init__(
             weight_norm(
                 CausalConvTranspose1d(
                     in_channels, out_channels, kernel_size, 1, 1, 0

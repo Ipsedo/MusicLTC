@@ -8,13 +8,14 @@ def normal_kl_div(
     var_2: th.Tensor,
     epsilon: float = 1e-12,
 ) -> th.Tensor:
-    return (
+    return th.sum(
         th.log(var_2 + epsilon) / 2.0
         - th.log(var_1 + epsilon) / 2.0
         + (var_1 + th.pow(mu_1 - mu_2, 2.0)) / (2 * var_2 + epsilon)
-        - 0.5
+        - 0.5,
+        dim=-1,
     )
 
 
 def mse(p: th.Tensor, q: th.Tensor) -> th.Tensor:
-    return th.pow(p - q, 2.0)
+    return th.pow(p - q, 2.0).sum(dim=-1)

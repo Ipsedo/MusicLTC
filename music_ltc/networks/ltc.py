@@ -4,7 +4,12 @@ from torch.nn import functional as th_f
 
 from .causal_conv import CausalConvStrideBlock, CausalConvTransposeStrideBlock
 from .conv import Conv1dBlock, Conv1dOutputBlock
-from .time import SequentialTimeWrapper, SinusoidTimeEmbedding, TimeWrapper
+from .time import (
+    FiLM,
+    SequentialTimeWrapper,
+    SinusoidTimeEmbedding,
+    TimeWrapper,
+)
 
 
 class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
@@ -28,6 +33,7 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
 
         self.__embedding = SinusoidTimeEmbedding(nb_diffusion_steps, time_size)
 
+        # encoder
         self.__first_layer = TimeWrapper(
             time_size, Conv1dBlock(channels, hidden_channels[0][0], 1)
         )
@@ -38,6 +44,11 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
                 for c_i, c_o in hidden_channels
             ],
         )
+
+        # after LTC
+        self.__ltc_film = FiLM(time_size, neuron_number)
+
+        # decoder
 
         self.__to_decoder = TimeWrapper(
             time_size,
@@ -63,6 +74,7 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
     ) -> th.Tensor:
         input_audio, t = input_and_diffusion_step
 
+        # (B, C, T)
         transposed_input = input_audio.transpose(1, 2)
 
         self.__time_emb = self.__embedding(t)
@@ -72,16 +84,20 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         )
         encoded_input = self.__encoder(encoded_input, self.__time_emb)
 
+        # (B, T, C)
         return encoded_input.transpose(1, 2)
 
     def _output_processing(self, out: th.Tensor) -> th.Tensor:
         return out
 
     def _sequence_processing(self, outputs: list[th.Tensor]) -> th.Tensor:
+        # (B, C, T)
         stacked_outputs = th.stack(outputs, dim=-1)
-        decoded_outputs: th.Tensor = self.__to_decoder(
-            stacked_outputs, self.__time_emb
-        )
-        decoded_outputs = self.__decoder(decoded_outputs, self.__time_emb)
-        decoded_outputs = self.__last_layer(decoded_outputs)
-        return decoded_outputs.transpose(1, 2)
+
+        out: th.Tensor = self.__ltc_film(stacked_outputs, self.__time_emb)
+        out = self.__to_decoder(out, self.__time_emb)
+        out = self.__decoder(out, self.__time_emb)
+        out = self.__last_layer(out)
+
+        # (B, T, C)
+        return out.transpose(1, 2)

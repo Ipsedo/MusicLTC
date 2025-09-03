@@ -37,3 +37,4 @@ class TrainOptions(BaseModel):
     sample_rate: int
     nb_audios_to_generate: int
     cuda: bool
+    dataloader_workers: int

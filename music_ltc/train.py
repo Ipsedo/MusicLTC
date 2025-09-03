@@ -48,7 +48,7 @@ def train_model(
             dataset,
             batch_size=train_options.batch_size,
             shuffle=True,
-            num_workers=6,
+            num_workers=train_options.dataloader_workers,
             drop_last=True,
             pin_memory=True,
         )
@@ -62,9 +62,7 @@ def train_model(
             tqdm_bar = tqdm(dataloader)
 
             for i, x_0 in enumerate(tqdm_bar):
-
-                if train_options.cuda:
-                    x_0 = x_0.cuda()
+                x_0 = x_0.to(device)
 
                 t = th.randint(
                     0,
@@ -84,12 +82,8 @@ def train_model(
                 )
 
                 loss_kl = normal_kl_div(q_mu, q_var, p_mu, p_var)
-                # loss_nll = negative_log_likelihood(x_0, p_mu, p_var)
-                # loss_nll = discretized_nll(x_0.unsqueeze(1), p_mu, p_var)
-                # loss_vlb = th.where(th.eq(t, 0), loss_nll, loss_kl)
 
-                loss = loss_kl + loss_mse
-                loss = loss.mean()
+                loss = th.mean(loss_kl + loss_mse)
 
                 optim.zero_grad(set_to_none=True)
                 loss.backward()
@@ -99,7 +93,7 @@ def train_model(
 
                 tqdm_bar.set_description(
                     f"Epoch {e} / {train_options.epochs - 1} - "
-                    f"loss = {loss.mean().item():.6f}, "
+                    f"loss = {loss.item():.6f}, "
                     f"mse = {loss_mse.mean().item():.6f}, "
                     f"kl = {loss_kl.mean().item():.6f}, "
                     f"grad_norm = {grad_norm:.6f}"
@@ -107,7 +101,7 @@ def train_model(
 
                 mlflow.log_metrics(
                     {
-                        "loss": loss.mean().item(),
+                        "loss": loss.item(),
                         "mse": loss_mse.mean().item(),
                         "kl": loss_kl.mean().item(),
                         "grad_norm": grad_norm,
@@ -123,6 +117,10 @@ def train_model(
             th.save(
                 noiser.state_dict(),
                 join(train_options.output_dir, f"noiser_{e}.pth"),
+            )
+            th.save(
+                optim.state_dict(),
+                join(train_options.output_dir, f"optim_{e}.pth"),
             )
 
             x_t = th.randn(
@@ -142,7 +140,7 @@ def train_model(
 
             for i in range(train_options.nb_audios_to_generate):
                 waveform_tensor = x_0[i].detach().cpu()
-                th_audio.save(
+                th_audio.save_with_torchcodec(
                     join(train_options.output_dir, f"audio_{e}_{i}.wav"),
                     waveform_tensor,
                     train_options.sample_rate,

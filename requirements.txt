@@ -1,5 +1,6 @@
 torch
 torchaudio
+torchcodec
 git+https://github.com/Ipsedo/LiquidNetworks
 pydantic
 numpy

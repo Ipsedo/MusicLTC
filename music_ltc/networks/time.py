@@ -38,17 +38,9 @@ class SinusoidTimeEmbedding(nn.Module):
         return out
 
 
-class TimeWrapper(nn.Module):
-    def __init__(
-        self,
-        time_size: int,
-        conv: TimeModuleProtocol,
-    ) -> None:
+class FiLM(nn.Module):
+    def __init__(self, time_size: int, channels: int) -> None:
         super().__init__()
-
-        self.__block = conv
-
-        channels = conv.get_out_channels()
 
         self.__to_channels = nn.Sequential(
             weight_norm(nn.Linear(time_size, channels * 2)),
@@ -62,9 +54,25 @@ class TimeWrapper(nn.Module):
         proj_time_emb = proj_time_emb[:, :, None]
         scale, shift = th.chunk(proj_time_emb, chunks=2, dim=1)
 
-        out: th.Tensor = self.__block(x)
+        out = x * (scale + 1.0) + shift
 
-        out = out * (scale + 1.0) + shift
+        return out
+
+
+class TimeWrapper(nn.Module):
+    def __init__(
+        self,
+        time_size: int,
+        module: TimeModuleProtocol,
+    ) -> None:
+        super().__init__()
+
+        self.__module = module
+        self.__film = FiLM(time_size, module.get_out_channels())
+
+    def forward(self, x: th.Tensor, time_emb: th.Tensor) -> th.Tensor:
+        out: th.Tensor = self.__module(x)
+        out = self.__film(out, time_emb)
 
         return out
 

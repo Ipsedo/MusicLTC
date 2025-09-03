@@ -68,6 +68,9 @@ def main() -> None:
         "--nb-audios-to-generate", type=int, default=3
     )
     train_model_parser.add_argument("--cuda", action="store_true")
+    train_model_parser.add_argument(
+        "--dataloader-workers", type=int, default=6
+    )
 
     args = parser.parse_args()
 
@@ -78,6 +81,7 @@ def main() -> None:
             args.sample_rate,
             args.sequence_length,
         )
+
     elif args.mode == "model":
         model_options = ModelOptions(
             diffusion_steps=args.diffusion_steps,
@@ -88,6 +92,7 @@ def main() -> None:
             unfolding_steps=args.unfolding_steps,
             delta_t=args.delta_t,
         )
+
         if args.run == "train":
             train_model(
                 model_options,
@@ -100,8 +105,13 @@ def main() -> None:
                     sample_rate=args.sample_rate,
                     nb_audios_to_generate=args.nb_audios_to_generate,
                     cuda=args.cuda,
+                    dataloader_workers=args.dataloader_workers,
                 ),
             )
+
+        else:
+            model_parser.error(f"Invalid run : {args.run}")
+
     else:
         parser.error(f"Invalid mode : {args.mode}")
 
