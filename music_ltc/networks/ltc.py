@@ -1,11 +1,10 @@
 import torch as th
 from liquid_networks.networks import AbstractLiquidRecurrent
+from torch import nn
 from torch.nn import functional as th_f
 
 from .conv import (
-    CausalConvBlock,
     CausalConvStrideBlock,
-    CausalConvTranspose1d,
     CausalConvTransposeBlock,
     CausalConvTransposeStrideBlock,
 )
@@ -33,8 +32,9 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
 
         self.__embedding = SinusoidTimeEmbedding(nb_diffusion_steps, time_size)
 
-        self.__first_layer = TimeWrapper(
-            time_size, CausalConvBlock(channels, hidden_channels[0][0])
+        self.__first_layer = nn.Sequential(
+            nn.Conv1d(channels, hidden_channels[0][0], 1, 1, 0),
+            nn.Mish(),
         )
         self.__encoder = SequentialTimeWrapper(
             time_size,
@@ -52,9 +52,8 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
                 for c_o, c_i in reversed(hidden_channels)
             ],
         )
-        self.__last_layer = TimeWrapper(
-            time_size,
-            CausalConvTranspose1d(hidden_channels[0][0], channels * 2, 3, 1),
+        self.__last_layer = nn.Conv1d(
+            hidden_channels[0][0], channels * 2, 1, 1, 0
         )
 
         self.__time_emb: th.Tensor = th.empty(1)
@@ -67,9 +66,7 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
 
         self.__time_emb = self.__embedding(t)
 
-        encoded_input: th.Tensor = self.__first_layer(
-            i.transpose(1, 2), self.__time_emb
-        )
+        encoded_input: th.Tensor = self.__first_layer(i.transpose(1, 2))
         encoded_input = self.__encoder(
             encoded_input, self.__time_emb
         ).transpose(1, 2)
@@ -85,5 +82,5 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
             stacked_outputs, self.__time_emb
         )
         decoded_outputs = self.__decoder(decoded_outputs, self.__time_emb)
-        decoded_outputs = self.__last_layer(decoded_outputs, self.__time_emb)
+        decoded_outputs = self.__last_layer(decoded_outputs)
         return decoded_outputs.transpose(1, 2)

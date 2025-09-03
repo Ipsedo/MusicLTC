@@ -37,10 +37,8 @@ class CausalConvStrideBlock(nn.Sequential):
         super().__init__(
             CausalConv1d(in_channels, out_channels, 3, 1, 1),
             nn.Mish(),
-            nn.InstanceNorm1d(out_channels),
             CausalConv1d(out_channels, out_channels, 3, 2, 1),
             nn.Mish(),
-            nn.InstanceNorm1d(out_channels),
         )
 
         self.__out_channels = out_channels
@@ -54,7 +52,6 @@ class CausalConvBlock(nn.Sequential):
         super().__init__(
             CausalConv1d(in_channels, out_channels, 3, 1, 1),
             nn.Mish(),
-            nn.InstanceNorm1d(out_channels),
         )
 
         self.__out_channels = out_channels
@@ -104,10 +101,8 @@ class CausalConvTransposeStrideBlock(nn.Sequential):
         super().__init__(
             CausalConvTranspose1d(in_channels, in_channels, 3, 2, 1, 1),
             nn.Mish(),
-            nn.InstanceNorm1d(in_channels),
             CausalConvTranspose1d(in_channels, out_channels, 3, 1, 1, 0),
             nn.Mish(),
-            nn.InstanceNorm1d(out_channels),
         )
 
         self.__out_channels = out_channels
@@ -121,7 +116,6 @@ class CausalConvTransposeBlock(nn.Sequential):
         super().__init__(
             CausalConvTranspose1d(in_channels, out_channels, 3, 1, 1, 0),
             nn.Mish(),
-            nn.InstanceNorm1d(out_channels),
         )
 
         self.__out_channels = out_channels

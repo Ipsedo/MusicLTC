@@ -45,7 +45,7 @@ def main() -> None:
     model_parser.add_argument(
         "--hidden-channels", type=_channels, required=True
     )
-    model_parser.add_argument("--neuron-number", type=int, default=32)
+    model_parser.add_argument("--neuron-number", type=int, default=64)
     model_parser.add_argument("--unfolding-steps", type=int, default=6)
     model_parser.add_argument("--delta-t", type=float, default=1.0)
 
