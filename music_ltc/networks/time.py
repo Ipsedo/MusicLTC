@@ -32,10 +32,7 @@ class SinusoidTimeEmbedding(nn.Module):
         self.register_buffer("_pos_emb", pos_emb)
 
     def forward(self, t_index: th.Tensor) -> th.Tensor:
-
-        out = th.index_select(self._pos_emb, dim=0, index=t_index)
-
-        return out
+        return th.index_select(self._pos_emb, dim=0, index=t_index)
 
 
 class FiLM(nn.Module):
@@ -49,7 +46,6 @@ class FiLM(nn.Module):
         )
 
     def forward(self, x: th.Tensor, time_emb: th.Tensor) -> th.Tensor:
-
         proj_time_emb = self.__to_channels(time_emb)
         proj_time_emb = proj_time_emb[:, :, None]
         scale, shift = th.chunk(proj_time_emb, chunks=2, dim=1)

@@ -49,7 +49,6 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         self.__ltc_film = FiLM(time_size, neuron_number)
 
         # decoder
-
         self.__to_decoder = TimeWrapper(
             time_size,
             Conv1dBlock(neuron_number, hidden_channels[-1][1], 1),

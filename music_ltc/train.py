@@ -109,7 +109,7 @@ def train_model(
                     step=e * nb_batches + i,
                 )
 
-            # save and generate
+            # save models
             th.save(
                 denoiser.state_dict(),
                 join(train_options.output_dir, f"denoiser_{e}.pth"),
@@ -123,6 +123,7 @@ def train_model(
                 join(train_options.output_dir, f"optim_{e}.pth"),
             )
 
+            # generate audio
             x_t = th.randn(
                 train_options.nb_audios_to_generate,
                 2**17,
@@ -130,8 +131,7 @@ def train_model(
                 device=device,
             )
 
-            with th.no_grad():
-                x_0 = denoiser.sample(x_t, verbose=True)
+            x_0 = denoiser.sample(x_t, verbose=True)
 
             th.save(
                 x_0,

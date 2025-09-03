@@ -140,7 +140,11 @@ class Denoiser(Diffuser):
         assert len(x_t.size()) == 3
         assert len(t.size()) == 1
         assert len(eps_theta.size()) == 3
+        assert len(v_theta.size()) == 3
+
         assert x_t.size(2) == self.__channels
+        assert x_t.size() == eps_theta.size()
+        assert x_t.size() == v_theta.size()
 
         return self.__mu(x_t, eps_theta, t), self.__var(v_theta, t)
 
@@ -149,7 +153,7 @@ class Denoiser(Diffuser):
         assert len(x_t.size()) == 3
         assert x_t.size(2) == self.__channels
 
-        device = "cuda" if next(self.parameters()).is_cuda else "cpu"
+        device = next(self.parameters()).device
 
         times = list(reversed(range(self._steps)))
         tqdm_bar = tqdm(times, disable=not verbose, leave=False)
@@ -186,14 +190,13 @@ class Denoiser(Diffuser):
         assert len(x_t.size()) == 3
         assert x_t.size(2) == self.__channels
 
-        device = "cuda" if next(self.parameters()).is_cuda else "cpu"
+        device = next(self.parameters()).device
 
         steps = th.linspace(
             0, self._steps - 1, steps=n_steps, dtype=th.long, device=device
         )
 
         alphas_cum_prod_s = self._alphas_cum_prod[steps]
-        # alphas_cum_prod_prev_s = self._alphas_cum_prod_prev[steps]
         alphas_cum_prod_prev_s = th.cat(
             [th.tensor([1], device=device), alphas_cum_prod_s[:-1]], dim=0
         )
@@ -230,17 +233,13 @@ class Denoiser(Diffuser):
                 x_t,
                 eps,
                 t_tensor,
-                alphas_s[s_t, None],
-                betas_s[s_t, None],
-                alphas_cum_prod_s[s_t, None],
-                alphas_cum_prod_prev_s[s_t, None],
+                alphas_s[s_t],
+                betas_s[s_t],
+                alphas_cum_prod_s[s_t],
+                alphas_cum_prod_prev_s[s_t],
             )
-            mu = mu.squeeze(1)
 
-            var = self.__var(
-                v, t_tensor, betas_s[s_t, None], betas_tiddle_s[s_t, None]
-            )
-            var = var.squeeze(1)
+            var = self.__var(v, t_tensor, betas_s[s_t], betas_tiddle_s[s_t])
 
             x_t = mu + var.sqrt() * z
 
@@ -249,18 +248,6 @@ class Denoiser(Diffuser):
             )
 
         return x_t
-
-    def loss_factor(self, t: th.Tensor) -> th.Tensor:
-        assert len(t.size()) == 2
-
-        alphas = select_time_scheduler(self._alphas, t)
-        betas = select_time_scheduler(self._betas, t)
-        alphas_cum_prod = select_time_scheduler(self._alphas_cum_prod, t)
-
-        # sig^2 = beta
-        scale: th.Tensor = betas / (2.0 * alphas * (1.0 - alphas_cum_prod))
-
-        return scale[:, :, None, None, None]
 
     def count_parameters(self) -> int:
         return int(
