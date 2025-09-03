@@ -51,9 +51,8 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
                 for c_o, c_i in reversed(hidden_channels)
             ],
         )
-        self.__last_layer = TimeWrapper(
-            time_size,
-            Conv1dOutputBlock(hidden_channels[0][0], channels * 2, 1),
+        self.__last_layer = Conv1dOutputBlock(
+            hidden_channels[0][0], channels * 2, 1
         )
 
         self.__time_emb: th.Tensor = th.empty(1)
@@ -84,5 +83,5 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
             stacked_outputs, self.__time_emb
         )
         decoded_outputs = self.__decoder(decoded_outputs, self.__time_emb)
-        decoded_outputs = self.__last_layer(decoded_outputs, self.__time_emb)
+        decoded_outputs = self.__last_layer(decoded_outputs)
         return decoded_outputs.transpose(1, 2)
