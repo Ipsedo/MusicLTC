@@ -1,7 +1,7 @@
 import pytest
 import torch as th
 
-from music_ltc.networks.ltc import WaveLTC
+from music_ltc.networks.wave_ltc import WaveLTC
 
 
 @pytest.mark.parametrize("channels", [1, 2])
@@ -27,7 +27,10 @@ def test_wave_ltc(channels: int, length: int, batch_size: int) -> None:
     x = th.randn(batch_size, length, channels)
     t = th.randint(0, diff_step, (batch_size,))
 
-    out = wave_ltc((x, t))
+    out_eps, out_v = wave_ltc(x, t)
 
-    assert len(out.size()) == 3
-    assert out.size() == (batch_size, length, channels * 2)
+    assert len(out_eps.size()) == 3
+    assert out_eps.size() == (batch_size, length, channels)
+
+    assert len(out_v.size()) == 3
+    assert out_v.size() == (batch_size, length, channels)

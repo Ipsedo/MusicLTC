@@ -5,7 +5,7 @@ import torch as th
 from tqdm import tqdm
 
 from .diffusion import Diffuser, select_time_scheduler
-from .ltc import WaveLTC
+from .wave_ltc import WaveLTC
 
 
 class Denoiser(Diffuser):
@@ -53,10 +53,9 @@ class Denoiser(Diffuser):
         assert len(t.size()) == 1
         assert x_t.size(0) == t.size(0)
 
-        eps_and_v_theta = self.__network((x_t, t))
-        eps_theta, v_theta = th.chunk(eps_and_v_theta, 2, dim=-1)
+        eps_theta, v_theta = self.__network(x_t, t)
 
-        return eps_theta, th.sigmoid(v_theta)
+        return eps_theta, v_theta
 
     def __x0_from_noise(
         self,
