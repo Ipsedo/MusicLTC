@@ -2,11 +2,17 @@ import torch as th
 
 
 def var_kl_div(
-    var_pred: th.Tensor,
-    var_target: th.Tensor,
+    p_mu: th.Tensor,
+    p_var: th.Tensor,
+    q_mu: th.Tensor,
+    q_var: th.Tensor,
     epsilon: float = 1e-12,
 ) -> th.Tensor:
-    return 0.5 * ((var_target / (var_pred + epsilon)) - 1 - th.log(var_target / (var_pred + epsilon)))
+    return 0.5 * (
+        (q_var + (q_mu - p_mu) ** 2) / (p_var + epsilon)
+        + (th.log(p_var + epsilon) - th.log(q_var + epsilon))
+        - 1.0
+    )
 
 
 def mse(p: th.Tensor, q: th.Tensor) -> th.Tensor:

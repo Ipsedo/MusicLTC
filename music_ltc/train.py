@@ -90,10 +90,10 @@ def train_model(
 
                 loss_mse = mse(eps, eps_theta).mean()
 
-                _, q_var = noiser.posterior(x_t, x_0, t)
-                _, p_var = denoiser.prior(x_t, t, eps_theta, v_theta)
+                q_mu, q_var = noiser.posterior(x_t, x_0, t)
+                p_mu, p_var = denoiser.prior(x_t, t, eps_theta, v_theta)
 
-                loss_kl = var_kl_div(p_var, q_var).mean()
+                loss_kl = var_kl_div(p_mu, p_var, q_mu, q_var).mean()
 
                 loss = loss_kl + loss_mse
 
