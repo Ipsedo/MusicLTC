@@ -2,8 +2,8 @@ import torch as th
 from torch import nn
 
 from .conv import (
-    Conv1dBlock,
-    Conv1dOutputBlock,
+    ChannelOutputBlock,
+    ChannelProjectionBlock,
     ConvStrideBlock,
     ConvTransposeStrideBlock,
 )
@@ -33,7 +33,7 @@ class WaveLTC(nn.Module):
 
         # encoder
         self.__first_layer = TimeWrapper(
-            time_size, Conv1dBlock(channels, hidden_channels[0][0], 1)
+            time_size, ChannelProjectionBlock(channels, hidden_channels[0][0])
         )
         self.__encoder = SequentialTimeWrapper(
             time_size,
@@ -49,7 +49,7 @@ class WaveLTC(nn.Module):
         # decoder
         self.__to_decoder = TimeWrapper(
             time_size,
-            Conv1dBlock(neuron_number, hidden_channels[-1][1], 1),
+            ChannelProjectionBlock(neuron_number, hidden_channels[-1][1]),
         )
 
         self.__decoder = SequentialTimeWrapper(
@@ -59,8 +59,9 @@ class WaveLTC(nn.Module):
                 for c_o, c_i in reversed(hidden_channels)
             ],
         )
-        self.__last_layer = Conv1dOutputBlock(
-            hidden_channels[0][0], channels * 2, 1
+        self.__to_eps = ChannelOutputBlock(hidden_channels[0][0], channels)
+        self.__to_v = nn.Sequential(
+            ChannelOutputBlock(hidden_channels[0][0], channels), nn.Sigmoid()
         )
 
     def forward(
@@ -82,10 +83,8 @@ class WaveLTC(nn.Module):
 
         decoded_output = self.__to_decoder(ltc_output, time_emb)
         decoded_output = self.__decoder(decoded_output, time_emb)
-        decoded_output = self.__last_layer(decoded_output)
 
-        # (B, T, C)
-        decoded_output = decoded_output.transpose(1, 2)
-        eps_theta, v_theta = th.chunk(decoded_output, 2, dim=-1)
+        eps_theta = self.__to_eps(decoded_output)
+        v_theta = self.__to_v(decoded_output)
 
-        return eps_theta, th.sigmoid(v_theta)
+        return th.transpose(eps_theta, 1, 2), th.transpose(v_theta, 1, 2)

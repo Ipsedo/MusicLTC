@@ -5,7 +5,7 @@ from music_ltc.networks.conv import ConvStrideBlock, ConvTransposeStrideBlock
 
 
 @pytest.mark.parametrize("in_channels", [1, 2])
-@pytest.mark.parametrize("out_channels", [1, 2])
+@pytest.mark.parametrize("out_channels", [8, 16])
 @pytest.mark.parametrize("length", [16, 32])
 @pytest.mark.parametrize("batch_size", [1, 2])
 def test_conv_block(
@@ -22,7 +22,7 @@ def test_conv_block(
 
 
 @pytest.mark.parametrize("in_channels", [1, 2])
-@pytest.mark.parametrize("out_channels", [1, 2])
+@pytest.mark.parametrize("out_channels", [8, 16])
 @pytest.mark.parametrize("length", [16, 32])
 @pytest.mark.parametrize("batch_size", [1, 2])
 def test_conv_tr_block(

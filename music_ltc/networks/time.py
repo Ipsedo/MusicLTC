@@ -3,7 +3,6 @@ from typing import Iterable, Protocol
 
 import torch as th
 from torch import nn
-from torch.nn.utils.parametrizations import weight_norm
 
 
 class TimeModuleProtocol(Protocol):
@@ -40,9 +39,10 @@ class FiLM(nn.Module):
         super().__init__()
 
         self.__to_channels = nn.Sequential(
-            weight_norm(nn.Linear(time_size, channels * 2)),
+            nn.Linear(time_size, channels * 2),
             nn.Mish(),
-            weight_norm(nn.Linear(channels * 2, channels * 2)),
+            nn.BatchNorm1d(channels * 2),
+            nn.Linear(channels * 2, channels * 2),
         )
 
     def forward(self, x: th.Tensor, time_emb: th.Tensor) -> th.Tensor:

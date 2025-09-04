@@ -5,9 +5,24 @@ from music_ltc.networks.wave_ltc import WaveLTC
 
 
 @pytest.mark.parametrize("channels", [1, 2])
+@pytest.mark.parametrize(
+    "hidden_channels",
+    [
+        [
+            (4, 4),
+            (4, 8),
+        ],
+        [(4, 4)],
+    ],
+)
 @pytest.mark.parametrize("length", [16, 32])
-@pytest.mark.parametrize("batch_size", [1, 2])
-def test_wave_ltc(channels: int, length: int, batch_size: int) -> None:
+@pytest.mark.parametrize("batch_size", [2, 3])
+def test_wave_ltc(
+    channels: int,
+    hidden_channels: list[tuple[int, int]],
+    length: int,
+    batch_size: int,
+) -> None:
     diff_step = 16
     time_size = 4
 
@@ -16,10 +31,7 @@ def test_wave_ltc(channels: int, length: int, batch_size: int) -> None:
         6,
         1.0,
         channels,
-        [
-            (4, 8),
-            (8, 16),
-        ],
+        hidden_channels,
         diff_step,
         time_size,
     )
