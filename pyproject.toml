@@ -28,4 +28,5 @@ disable = [
     "too-many-positional-arguments",
     "too-many-locals",
     "too-many-instance-attributes",
+    "too-few-public-methods",
 ]

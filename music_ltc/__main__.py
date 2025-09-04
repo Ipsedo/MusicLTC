@@ -68,6 +68,7 @@ def main() -> None:
         "--nb-audios-to-generate", type=int, default=3
     )
     train_model_parser.add_argument("--cuda", action="store_true")
+    train_model_parser.add_argument("--save-every", type=int, default=512)
     train_model_parser.add_argument(
         "--dataloader-workers", type=int, default=6
     )
@@ -106,6 +107,7 @@ def main() -> None:
                     nb_audios_to_generate=args.nb_audios_to_generate,
                     cuda=args.cuda,
                     dataloader_workers=args.dataloader_workers,
+                    save_every=args.save_every,
                 ),
             )
 

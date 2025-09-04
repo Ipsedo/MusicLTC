@@ -1,15 +1,12 @@
-from os import mkdir
-from os.path import exists, isdir, join
-
 import mlflow
 import torch as th
-import torchaudio as th_audio
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from .data.dataset import AudioDataset
 from .networks.losses import mse, normal_kl_div
 from .options import ModelOptions, TrainOptions
+from .saver import AudioSaver, SaveManager, TorchSaver
 
 
 def train_model(
@@ -17,15 +14,7 @@ def train_model(
 ) -> None:
     mlflow.set_experiment("music_diffusion_ltc")
 
-    with mlflow.start_run(run_name="train_debug"):
-
-        if not exists(train_options.output_dir):
-            mkdir(train_options.output_dir)
-        elif not isdir(train_options.output_dir):
-            raise NotADirectoryError(
-                f'"{train_options.output_dir}" is not a directory.'
-            )
-
+    with mlflow.start_run(run_name="train"):
         mlflow.log_params(
             {
                 **dict(model_options),
@@ -59,6 +48,23 @@ def train_model(
             num_workers=train_options.dataloader_workers,
             drop_last=True,
             pin_memory=True,
+        )
+
+        save_manager = SaveManager(
+            [
+                TorchSaver("noiser", noiser),
+                TorchSaver("denoiser", denoiser),
+                TorchSaver("optimizer", optim),
+                AudioSaver(
+                    denoiser,
+                    train_options.sample_rate,
+                    train_options.nb_audios_to_generate,
+                    2**17,
+                    model_options.channels,
+                ),
+            ],
+            train_options.output_dir,
+            train_options.save_every,
         )
 
         device = th.device("cuda" if train_options.cuda else "cpu")
@@ -117,40 +123,4 @@ def train_model(
                     step=e * nb_batches + i,
                 )
 
-            # save models
-            th.save(
-                denoiser.state_dict(),
-                join(train_options.output_dir, f"denoiser_{e}.pth"),
-            )
-            th.save(
-                noiser.state_dict(),
-                join(train_options.output_dir, f"noiser_{e}.pth"),
-            )
-            th.save(
-                optim.state_dict(),
-                join(train_options.output_dir, f"optim_{e}.pth"),
-            )
-
-            # generate audio
-            x_t = th.randn(
-                train_options.nb_audios_to_generate,
-                2**17,
-                model_options.channels,
-                device=device,
-            )
-
-            x_0 = denoiser.sample(x_t, verbose=True)
-
-            th.save(
-                x_0,
-                join(train_options.output_dir, f"waveform_{e}.pt"),
-            )
-
-            for i in range(train_options.nb_audios_to_generate):
-                waveform_tensor = x_0[i].detach().cpu()
-                th_audio.save_with_torchcodec(
-                    join(train_options.output_dir, f"audio_{e}_{i}.wav"),
-                    waveform_tensor,
-                    train_options.sample_rate,
-                    channels_first=False,
-                )
+                save_manager.saving_attempt()

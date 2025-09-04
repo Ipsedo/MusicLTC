@@ -38,3 +38,4 @@ class TrainOptions(BaseModel):
     nb_audios_to_generate: int
     cuda: bool
     dataloader_workers: int
+    save_every: int
