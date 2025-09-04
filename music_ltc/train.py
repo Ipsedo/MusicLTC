@@ -1,4 +1,5 @@
-from os.path import join
+from os import mkdir
+from os.path import exists, isdir, join
 
 import mlflow
 import torch as th
@@ -17,6 +18,13 @@ def train_model(
     mlflow.set_experiment("music_diffusion_ltc")
 
     with mlflow.start_run(run_name="train_debug"):
+
+        if not exists(train_options.output_dir):
+            mkdir(train_options.output_dir)
+        elif not isdir(train_options.output_dir):
+            raise NotADirectoryError(
+                f'"{train_options.output_dir}" is not a directory.'
+            )
 
         mlflow.log_params(
             {

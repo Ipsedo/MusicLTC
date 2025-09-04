@@ -2,8 +2,12 @@ import torch as th
 from liquid_networks.networks import AbstractLiquidRecurrent
 from torch.nn import functional as th_f
 
-from .causal_conv import CausalConvStrideBlock, CausalConvTransposeStrideBlock
-from .conv import Conv1dBlock, Conv1dOutputBlock
+from .conv import (
+    Conv1dBlock,
+    Conv1dOutputBlock,
+    ConvStrideBlock,
+    ConvTransposeStrideBlock,
+)
 from .time import (
     FiLM,
     SequentialTimeWrapper,
@@ -39,10 +43,7 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         )
         self.__encoder = SequentialTimeWrapper(
             time_size,
-            [
-                CausalConvStrideBlock(c_i, c_o, 4)
-                for c_i, c_o in hidden_channels
-            ],
+            [ConvStrideBlock(c_i, c_o) for c_i, c_o in hidden_channels],
         )
 
         # after LTC
@@ -57,7 +58,7 @@ class WaveLTC(AbstractLiquidRecurrent[tuple[th.Tensor, th.Tensor]]):
         self.__decoder = SequentialTimeWrapper(
             time_size,
             [
-                CausalConvTransposeStrideBlock(c_i, c_o, 4)
+                ConvTransposeStrideBlock(c_i, c_o)
                 for c_o, c_i in reversed(hidden_channels)
             ],
         )
