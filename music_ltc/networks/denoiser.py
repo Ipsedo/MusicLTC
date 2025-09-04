@@ -56,7 +56,7 @@ class Denoiser(Diffuser):
         eps_and_v_theta = self.__network((x_t, t))
         eps_theta, v_theta = th.chunk(eps_and_v_theta, 2, dim=-1)
 
-        return eps_theta, v_theta
+        return eps_theta, th.sigmoid(v_theta)
 
     def __x0_from_noise(
         self,
