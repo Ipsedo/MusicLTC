@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from .data.dataset import AudioDataset
-from .networks.losses import mse, normal_kl_div
+from .networks.losses import mse, var_kl_div
 from .options import ModelOptions, TrainOptions
 from .saver import AudioSaver, SaveManager, TorchSaver
 
@@ -88,16 +88,14 @@ def train_model(
                 x_t, eps = noiser(x_0, t)
                 eps_theta, v_theta = denoiser(x_t, t)
 
-                loss_mse = mse(eps, eps_theta)
+                loss_mse = mse(eps, eps_theta).mean()
 
-                q_mu, q_var = noiser.posterior(x_t, x_0, t)
-                p_mu, p_var = denoiser.prior(
-                    x_t, t, eps_theta.detach(), v_theta
-                )
+                _, q_var = noiser.posterior(x_t, x_0, t)
+                _, p_var = denoiser.prior(x_t, t, eps_theta, v_theta)
 
-                loss_kl = normal_kl_div(q_mu, q_var, p_mu, p_var)
+                loss_kl = var_kl_div(p_var, q_var).mean()
 
-                loss = th.mean(loss_kl + loss_mse)
+                loss = loss_kl + loss_mse
 
                 optim.zero_grad(set_to_none=True)
                 loss.backward()
@@ -108,16 +106,16 @@ def train_model(
                 tqdm_bar.set_description(
                     f"Epoch {e} / {train_options.epochs - 1} - "
                     f"loss = {loss.item():.6f}, "
-                    f"mse = {loss_mse.mean().item():.6f}, "
-                    f"kl = {loss_kl.mean().item():.6f}, "
+                    f"mse = {loss_mse.item():.6f}, "
+                    f"kl = {loss_kl.item():.6f}, "
                     f"grad_norm = {grad_norm:.6f}"
                 )
 
                 mlflow.log_metrics(
                     {
                         "loss": loss.item(),
-                        "mse": loss_mse.mean().item(),
-                        "kl": loss_kl.mean().item(),
+                        "mse": loss_mse.item(),
+                        "kl": loss_kl.item(),
                         "grad_norm": grad_norm,
                     },
                     step=e * nb_batches + i,
