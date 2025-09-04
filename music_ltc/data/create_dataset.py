@@ -32,11 +32,13 @@ def create_dataset(
 
         split_waveforms = split_audio(waveform_tensor, sequence_length)
 
-        for sample in split_waveforms:
+        for s_idx, sample in enumerate(split_waveforms):
             output_file_path = join(dataset_output_dir, f"waveform_{idx}.pt")
 
             th.save(sample.transpose(0, 1).clone(), output_file_path)
 
             idx += 1
 
-        tqdm_bar.set_description(f"total : {idx}")
+            tqdm_bar.set_description(
+                f"total : {idx}, split : {s_idx} / {len(split_waveforms)}"
+            )

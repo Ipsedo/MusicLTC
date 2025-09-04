@@ -6,7 +6,7 @@ def open_audio_and_convert_sample_rate(
     audio_path: str,
     to_sample_rate: int,
 ) -> th.Tensor:
-    raw_audio, sr = th_audio.load(audio_path)
+    raw_audio, sr = th_audio.load_with_torchcodec(audio_path)
 
     resampled_raw_audio: th.Tensor = th_audio.functional.resample(
         raw_audio, sr, to_sample_rate
