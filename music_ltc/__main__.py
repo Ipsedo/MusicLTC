@@ -7,9 +7,7 @@ from .train import train_model
 
 
 def _channels(string: str) -> list[tuple[int, int]]:
-    regex_match = re.compile(
-        r"^ *\[(?: *\( *\d+ *, *\d+ *\) *,)* *\( *\d+ *, *\d+ *\) *] *$"
-    )
+    regex_match = re.compile(r"^ *\[(?: *\( *\d+ *, *\d+ *\) *,)* *\( *\d+ *, *\d+ *\) *] *$")
     regex_layer = re.compile(r"\( *\d+ *, *\d+ *\)")
     regex_channel = re.compile(r"\d+")
 
@@ -31,59 +29,39 @@ def main() -> None:
     create_dataset_parser = sub_parsers.add_parser(name="create-dataset")
     create_dataset_parser.add_argument("audio_glob_path", type=str)
     create_dataset_parser.add_argument("--output-dir", type=str, required=True)
-    create_dataset_parser.add_argument(
-        "--sample-rate", type=int, default=16000
-    )
-    create_dataset_parser.add_argument(
-        "--sequence-length", type=int, default=2**17
-    )
+    create_dataset_parser.add_argument("--sample-rate", type=int, default=16000)
+    create_dataset_parser.add_argument("--sequence-length", type=int, default=2**17)
 
     model_parser = sub_parsers.add_parser(name="model")
     model_parser.add_argument("--diffusion-steps", type=int, default=1024)
     model_parser.add_argument("--time-size", type=int, default=32)
     model_parser.add_argument("--channels", type=int, default=2)
-    model_parser.add_argument(
-        "--hidden-channels", type=_channels, required=True
-    )
+    model_parser.add_argument("--hidden-channels", type=_channels, required=True)
     model_parser.add_argument("--neuron-number", type=int, default=64)
     model_parser.add_argument("--unfolding-steps", type=int, default=6)
     model_parser.add_argument("--delta-t", type=float, default=1.0)
 
-    model_parser_subparser = model_parser.add_subparsers(
-        dest="run", required=True
-    )
+    model_parser_subparser = model_parser.add_subparsers(dest="run", required=True)
 
     train_model_parser = model_parser_subparser.add_parser(name="train")
     train_model_parser.add_argument("dataset_path", type=str)
-    train_model_parser.add_argument(
-        "-o", "--output-dir", type=str, required=True
-    )
+    train_model_parser.add_argument("-o", "--output-dir", type=str, required=True)
     train_model_parser.add_argument("--batch-size", type=int, default=32)
     train_model_parser.add_argument("--epochs", type=int, default=200)
-    train_model_parser.add_argument(
-        "--learning-rate", type=float, default=1e-4
-    )
+    train_model_parser.add_argument("--learning-rate", type=float, default=1e-4)
+    train_model_parser.add_argument("--gamma", type=float, default=1e-3)
     train_model_parser.add_argument("--sample-rate", type=int, default=16000)
-    train_model_parser.add_argument(
-        "--fast-sample-steps", type=int, default=256
-    )
-    train_model_parser.add_argument(
-        "--nb-audios-to-generate", type=int, default=3
-    )
+    train_model_parser.add_argument("--fast-sample-steps", type=int, default=256)
+    train_model_parser.add_argument("--nb-audios-to-generate", type=int, default=3)
     train_model_parser.add_argument("--cuda", action="store_true")
     train_model_parser.add_argument("--save-every", type=int, default=512)
-    train_model_parser.add_argument(
-        "--dataloader-workers", type=int, default=6
-    )
+    train_model_parser.add_argument("--dataloader-workers", type=int, default=6)
 
     args = parser.parse_args()
 
     if args.mode == "create-dataset":
         create_dataset(
-            args.audio_glob_path,
-            args.output_dir,
-            args.sample_rate,
-            args.sequence_length,
+            args.audio_glob_path, args.output_dir, args.sample_rate, args.sequence_length
         )
 
     elif args.mode == "model":
@@ -106,6 +84,7 @@ def main() -> None:
                     batch_size=args.batch_size,
                     epochs=args.epochs,
                     learning_rate=args.learning_rate,
+                    gamma=args.gamma,
                     fast_sample_steps=args.fast_sample_steps,
                     sample_rate=args.sample_rate,
                     nb_audios_to_generate=args.nb_audios_to_generate,

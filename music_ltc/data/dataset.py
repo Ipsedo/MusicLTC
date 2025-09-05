@@ -24,9 +24,7 @@ class AudioDataset(Dataset):
         self.__dataset_path = dataset_path
 
     def __getitem__(self, index: int) -> th.Tensor:
-        waveform: th.Tensor = th.load(
-            join(self.__dataset_path, self.__all_files[index])
-        )
+        waveform: th.Tensor = th.load(join(self.__dataset_path, self.__all_files[index]))
 
         return waveform
 

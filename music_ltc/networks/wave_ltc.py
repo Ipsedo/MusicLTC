@@ -8,12 +8,7 @@ from .conv import (
     ConvTransposeStrideBlock,
 )
 from .ltc import SimpleLTC
-from .time import (
-    FiLM,
-    SequentialTimeWrapper,
-    SinusoidTimeEmbedding,
-    TimeWrapper,
-)
+from .time import FiLM, SequentialTimeWrapper, SinusoidTimeEmbedding, TimeWrapper
 
 
 class WaveLTC(nn.Module):
@@ -41,9 +36,7 @@ class WaveLTC(nn.Module):
         )
 
         # LTC
-        self.__ltc = SimpleLTC(
-            neuron_number, unfolding_steps, delta_t, hidden_channels[-1][1]
-        )
+        self.__ltc = SimpleLTC(neuron_number, unfolding_steps, delta_t, hidden_channels[-1][1])
         self.__ltc_film = FiLM(time_size, neuron_number)
 
         # decoder
@@ -54,26 +47,19 @@ class WaveLTC(nn.Module):
 
         self.__decoder = SequentialTimeWrapper(
             time_size,
-            [
-                ConvTransposeStrideBlock(c_i, c_o)
-                for c_o, c_i in reversed(hidden_channels)
-            ],
+            [ConvTransposeStrideBlock(c_i, c_o) for c_o, c_i in reversed(hidden_channels)],
         )
         self.__to_eps = ChannelOutputBlock(hidden_channels[0][0], channels)
         self.__to_v = nn.Sequential(
             ChannelOutputBlock(hidden_channels[0][0], channels), nn.Sigmoid()
         )
 
-    def forward(
-        self, x_t: th.Tensor, t: th.Tensor
-    ) -> tuple[th.Tensor, th.Tensor]:
+    def forward(self, x_t: th.Tensor, t: th.Tensor) -> tuple[th.Tensor, th.Tensor]:
         transposed_input = x_t.transpose(1, 2)
 
         time_emb = self.__embedding(t)
 
-        encoded_input: th.Tensor = self.__first_layer(
-            transposed_input, time_emb
-        )
+        encoded_input: th.Tensor = self.__first_layer(transposed_input, time_emb)
         encoded_input = self.__encoder(encoded_input, time_emb)
 
         # (B, T, C)

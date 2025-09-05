@@ -1,11 +1,11 @@
 [tool.black]
-line-length = 79
+line-length = 100
 
 [tool.pycln]
 all = true
 
 [tool.isort]
-line_length = 79
+line_length = 100
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
@@ -19,7 +19,7 @@ disallow_untyped_defs = true
 
 [tool.pylint]
 good-names-rgxs = "^[_a-z][_a-z0-9]?$"
-max-line-length = 80
+max-line-length = 100
 disable = [
     "missing-module-docstring",
     "missing-class-docstring",

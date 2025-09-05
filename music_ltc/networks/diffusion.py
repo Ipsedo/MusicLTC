@@ -26,9 +26,7 @@ class Diffuser(ABC, nn.Module):
         # exponent: th.Tensor = linear_space * 3. * th.pi - 1.5 * th.pi
         # exponent = -exponent
         # f_values = 1 - 1. / (1. + th.exp(exponent))
-        f_values = th.pow(
-            th.cos(0.5 * th.pi * (linear_space + s) / (1 + s)), 2.0
-        )
+        f_values = th.pow(th.cos(0.5 * th.pi * (linear_space + s) / (1 + s)), 2.0)
 
         alphas_cum_prod = f_values[1:] / f_values[0]
         alphas_cum_prod_prev = f_values[:-1] / f_values[0]
@@ -39,16 +37,12 @@ class Diffuser(ABC, nn.Module):
         alphas = 1 - betas
 
         alphas_cum_prod = th.cumprod(alphas, dim=0)
-        alphas_cum_prod_prev = th.cat(
-            [th.tensor([1]), alphas_cum_prod[:-1]], dim=0
-        )
+        alphas_cum_prod_prev = th.cat([th.tensor([1]), alphas_cum_prod[:-1]], dim=0)
 
         sqrt_alphas_cum_prod = th.sqrt(alphas_cum_prod)
         sqrt_one_minus_alphas_cum_prod = th.sqrt(1 - alphas_cum_prod)
 
-        betas_tiddle = (
-            betas * (1.0 - alphas_cum_prod_prev) / (1.0 - alphas_cum_prod)
-        )
+        betas_tiddle = betas * (1.0 - alphas_cum_prod_prev) / (1.0 - alphas_cum_prod)
         betas_tiddle = th.clamp_min(betas_tiddle, betas_tiddle[1])
 
         # attributes definition
@@ -73,9 +67,7 @@ class Diffuser(ABC, nn.Module):
         self.register_buffer("_alphas_cum_prod", alphas_cum_prod)
 
         self.register_buffer("_sqrt_alphas_cum_prod", sqrt_alphas_cum_prod)
-        self.register_buffer(
-            "_sqrt_one_minus_alphas_cum_prod", sqrt_one_minus_alphas_cum_prod
-        )
+        self.register_buffer("_sqrt_one_minus_alphas_cum_prod", sqrt_one_minus_alphas_cum_prod)
 
         self.register_buffer("_alphas_cum_prod_prev", alphas_cum_prod_prev)
 
@@ -97,9 +89,7 @@ class Diffuser(ABC, nn.Module):
             else alphas_cum_prod_prev
         )
 
-        betas = (
-            select_time_scheduler(self._betas, t) if betas is None else betas
-        )
+        betas = select_time_scheduler(self._betas, t) if betas is None else betas
 
         alphas_cum_prod = (
             select_time_scheduler(self._alphas_cum_prod, t)
@@ -107,16 +97,10 @@ class Diffuser(ABC, nn.Module):
             else alphas_cum_prod
         )
 
-        alphas = (
-            select_time_scheduler(self._alphas, t)
-            if alphas is None
-            else alphas
-        )
+        alphas = select_time_scheduler(self._alphas, t) if alphas is None else alphas
 
         mu: th.Tensor = x_0 * th.sqrt(alphas_cum_prod_prev) * betas / (
             1 - alphas_cum_prod
-        ) + x_t * th.sqrt(alphas) * (1 - alphas_cum_prod_prev) / (
-            1 - alphas_cum_prod
-        )
+        ) + x_t * th.sqrt(alphas) * (1 - alphas_cum_prod_prev) / (1 - alphas_cum_prod)
 
         return mu

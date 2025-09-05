@@ -9,18 +9,11 @@ from .options import ModelOptions, TrainOptions
 from .saver import AudioSaver, SaveManager, TorchSaver
 
 
-def train_model(
-    model_options: ModelOptions, train_options: TrainOptions
-) -> None:
+def train_model(model_options: ModelOptions, train_options: TrainOptions) -> None:
     mlflow.set_experiment("music_diffusion_ltc")
 
     with mlflow.start_run(run_name="train"):
-        mlflow.log_params(
-            {
-                **dict(model_options),
-                **dict(train_options),
-            }
-        )
+        mlflow.log_params({**dict(model_options), **dict(train_options)})
 
         if train_options.cuda:
             th.backends.cudnn.benchmark = True
@@ -30,10 +23,7 @@ def train_model(
 
         print(f"Parameters count = {denoiser.count_parameters()}")
 
-        optim = th.optim.Adam(
-            denoiser.parameters(),
-            lr=train_options.learning_rate,
-        )
+        optim = th.optim.Adam(denoiser.parameters(), lr=train_options.learning_rate)
 
         if train_options.cuda:
             noiser.cuda()
@@ -80,10 +70,7 @@ def train_model(
                 x_0 = x_0.to(device)
 
                 t = th.randint(
-                    0,
-                    model_options.diffusion_steps,
-                    (train_options.batch_size,),
-                    device=device,
+                    0, model_options.diffusion_steps, (train_options.batch_size,), device=device
                 )
 
                 x_t, eps = noiser(x_0, t)
@@ -96,7 +83,7 @@ def train_model(
 
                 loss_kl = var_kl_div(p_mu, p_var, q_mu, q_var).mean()
 
-                loss = loss_kl + loss_mse
+                loss = train_options.gamma * loss_kl + loss_mse
 
                 optim.zero_grad(set_to_none=True)
                 loss.backward()

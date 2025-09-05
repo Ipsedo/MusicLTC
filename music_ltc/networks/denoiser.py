@@ -26,15 +26,9 @@ class Denoiser(Diffuser):
         self._sqrt_alpha: th.Tensor
         self._sqrt_betas: th.Tensor
 
-        self.register_buffer(
-            "_sqrt_alpha",
-            th.sqrt(self._alphas),
-        )
+        self.register_buffer("_sqrt_alpha", th.sqrt(self._alphas))
 
-        self.register_buffer(
-            "_sqrt_betas",
-            th.sqrt(self._betas),
-        )
+        self.register_buffer("_sqrt_betas", th.sqrt(self._betas))
 
         self.__network = WaveLTC(
             neuron_number,
@@ -46,9 +40,7 @@ class Denoiser(Diffuser):
             time_size,
         )
 
-    def forward(
-        self, x_t: th.Tensor, t: th.Tensor
-    ) -> tuple[th.Tensor, th.Tensor]:
+    def forward(self, x_t: th.Tensor, t: th.Tensor) -> tuple[th.Tensor, th.Tensor]:
         assert len(x_t.size()) == 3
         assert len(t.size()) == 1
         assert x_t.size(0) == t.size(0)
@@ -69,9 +61,7 @@ class Denoiser(Diffuser):
             if alphas_cum_prod is None
             else alphas_cum_prod
         )
-        x_0: th.Tensor = (x_t - eps * th.sqrt(1 - alphas_cum_prod)) / th.sqrt(
-            alphas_cum_prod
-        )
+        x_0: th.Tensor = (x_t - eps * th.sqrt(1 - alphas_cum_prod)) / th.sqrt(alphas_cum_prod)
         return th.clip(x_0, -1.0, 1.0)
 
     def __mu_clipped(
@@ -98,9 +88,7 @@ class Denoiser(Diffuser):
 
         return mu
 
-    def __mu(
-        self, x_t: th.Tensor, eps_theta: th.Tensor, t: th.Tensor
-    ) -> th.Tensor:
+    def __mu(self, x_t: th.Tensor, eps_theta: th.Tensor, t: th.Tensor) -> th.Tensor:
 
         mu: th.Tensor = (
             x_t
@@ -118,13 +106,9 @@ class Denoiser(Diffuser):
         betas_tiddle: th.Tensor | None = None,
     ) -> th.Tensor:
 
-        betas = (
-            select_time_scheduler(self._betas, t) if betas is None else betas
-        )
+        betas = select_time_scheduler(self._betas, t) if betas is None else betas
         betas_tiddle = (
-            select_time_scheduler(self._betas_tiddle, t)
-            if betas_tiddle is None
-            else betas_tiddle
+            select_time_scheduler(self._betas_tiddle, t) if betas_tiddle is None else betas_tiddle
         )
 
         return th.exp(v * th.log(betas) + (1.0 - v) * th.log(betas_tiddle))
@@ -159,11 +143,7 @@ class Denoiser(Diffuser):
         tqdm_bar = tqdm(times, disable=not verbose, leave=False)
 
         for t in tqdm_bar:
-            z = (
-                th.randn_like(x_t, device=device)
-                if t > 0
-                else th.zeros_like(x_t, device=device)
-            )
+            z = th.randn_like(x_t, device=device) if t > 0 else th.zeros_like(x_t, device=device)
 
             t_tensor = th.tensor([t] * x_t.size(0), device=device)
 
@@ -184,17 +164,13 @@ class Denoiser(Diffuser):
         return x_t
 
     @th.no_grad()
-    def fast_sample(
-        self, x_t: th.Tensor, n_steps: int, verbose: bool = False
-    ) -> th.Tensor:
+    def fast_sample(self, x_t: th.Tensor, n_steps: int, verbose: bool = False) -> th.Tensor:
         assert len(x_t.size()) == 3
         assert x_t.size(2) == self.__channels
 
         device = next(self.parameters()).device
 
-        steps = th.linspace(
-            0, self._steps - 1, steps=n_steps, dtype=th.long, device=device
-        )
+        steps = th.linspace(0, self._steps - 1, steps=n_steps, dtype=th.long, device=device)
 
         alphas_cum_prod_s = self._alphas_cum_prod[steps]
         alphas_cum_prod_prev_s = th.cat(
@@ -204,11 +180,7 @@ class Denoiser(Diffuser):
         betas_s = 1.0 - alphas_cum_prod_s / alphas_cum_prod_prev_s
         betas_s = th.clamp_max(betas_s, 0.999)
 
-        betas_tiddle_s = (
-            betas_s
-            * (1.0 - alphas_cum_prod_prev_s)
-            / (1.0 - alphas_cum_prod_s)
-        )
+        betas_tiddle_s = betas_s * (1.0 - alphas_cum_prod_prev_s) / (1.0 - alphas_cum_prod_s)
         betas_tiddle_s = th.clamp_min(betas_tiddle_s, betas_tiddle_s[1])
 
         alphas_s = 1.0 - betas_s
@@ -219,11 +191,7 @@ class Denoiser(Diffuser):
         for s_t, t in enumerate(tqdm_bar):
             s_t = len(times) - s_t - 1
 
-            z = (
-                th.randn_like(x_t, device=device)
-                if t > 0
-                else th.zeros_like(x_t, device=device)
-            )
+            z = th.randn_like(x_t, device=device) if t > 0 else th.zeros_like(x_t, device=device)
 
             t_tensor = th.tensor([t] * x_t.size(0), device=device)
 
@@ -250,17 +218,7 @@ class Denoiser(Diffuser):
         return x_t
 
     def count_parameters(self) -> int:
-        return int(
-            sum(
-                np.prod(p.size()) for p in self.parameters() if p.requires_grad
-            )
-        )
+        return int(sum(np.prod(p.size()) for p in self.parameters() if p.requires_grad))
 
     def grad_norm(self) -> float:
-        return float(
-            mean(
-                p.grad.norm().item()
-                for p in self.parameters()
-                if p.grad is not None
-            )
-        )
+        return float(mean(p.grad.norm().item() for p in self.parameters() if p.grad is not None))

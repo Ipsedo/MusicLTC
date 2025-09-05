@@ -34,6 +34,7 @@ class TrainOptions(BaseModel):
     batch_size: int
     epochs: int
     learning_rate: float
+    gamma: float
     sample_rate: int
     nb_audios_to_generate: int
     fast_sample_steps: int

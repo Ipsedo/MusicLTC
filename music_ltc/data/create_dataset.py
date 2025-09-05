@@ -26,9 +26,7 @@ def create_dataset(
     tqdm_bar = tqdm(w_p)
 
     for wav_p in tqdm_bar:
-        waveform_tensor = open_audio_and_convert_sample_rate(
-            wav_p, sample_rate
-        )
+        waveform_tensor = open_audio_and_convert_sample_rate(wav_p, sample_rate)
 
         split_waveforms = split_audio(waveform_tensor, sequence_length)
 
@@ -39,6 +37,4 @@ def create_dataset(
 
             idx += 1
 
-            tqdm_bar.set_description(
-                f"total : {idx}, split : {s_idx} / {len(split_waveforms)}"
-            )
+            tqdm_bar.set_description(f"total : {idx}, split : {s_idx} / {len(split_waveforms)}")

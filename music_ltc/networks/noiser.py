@@ -14,9 +14,7 @@ class Noiser(Diffuser):
         if eps is None:
             eps = th.randn_like(x_0, device=next(self.buffers()).device)
 
-        sqrt_alphas_cum_prod = select_time_scheduler(
-            self._sqrt_alphas_cum_prod, t
-        )
+        sqrt_alphas_cum_prod = select_time_scheduler(self._sqrt_alphas_cum_prod, t)
         sqrt_one_minus_alphas_cum_prod = select_time_scheduler(
             self._sqrt_one_minus_alphas_cum_prod, t
         )

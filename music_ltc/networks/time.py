@@ -20,8 +20,7 @@ class SinusoidTimeEmbedding(nn.Module):
         pos_emb = th.zeros(steps, size)
         position = th.arange(0, steps).unsqueeze(1)
         div_term = th.exp(
-            th.arange(0, size, 2, dtype=th.float)
-            * th.tensor(-math.log(10000.0) / size)
+            th.arange(0, size, 2, dtype=th.float) * th.tensor(-math.log(10000.0) / size)
         )
         pos_emb[:, 0::2] = th.sin(position.float() * div_term)
         pos_emb[:, 1::2] = th.cos(position.float() * div_term)

@@ -11,13 +11,7 @@ class SimpleLTC(AbstractLiquidRecurrent[th.Tensor]):
         delta_t: float,
         input_size: int,
     ) -> None:
-        super().__init__(
-            neuron_number,
-            input_size,
-            unfolding_steps,
-            th_f.mish,
-            delta_t,
-        )
+        super().__init__(neuron_number, input_size, unfolding_steps, th_f.mish, delta_t)
 
     def _process_input(self, i: th.Tensor) -> th.Tensor:
         return i

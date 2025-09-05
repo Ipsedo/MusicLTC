@@ -16,19 +16,14 @@ class AbstractSaver(ABC):
 
 
 class TorchSaver(AbstractSaver):
-    def __init__(
-        self, name: str, module_or_optim: nn.Module | th.optim.Optimizer
-    ) -> None:
+    def __init__(self, name: str, module_or_optim: nn.Module | th.optim.Optimizer) -> None:
         super().__init__()
 
         self.__module_or_optim = module_or_optim
         self.__name = name
 
     def save(self, output_folder: str) -> None:
-        th.save(
-            self.__module_or_optim.state_dict(),
-            join(output_folder, f"{self.__name}.pth"),
-        )
+        th.save(self.__module_or_optim.state_dict(), join(output_folder, f"{self.__name}.pth"))
 
 
 class AudioSaver(AbstractSaver):
@@ -55,16 +50,9 @@ class AudioSaver(AbstractSaver):
     def save(self, output_folder: str) -> None:
         device = next(self.__denoiser.parameters()).device
 
-        x_t = th.randn(
-            self.__nb_audio_to_generate,
-            self.__nb_ticks,
-            self.__channels,
-            device=device,
-        )
+        x_t = th.randn(self.__nb_audio_to_generate, self.__nb_ticks, self.__channels, device=device)
 
-        x_0 = self.__denoiser.fast_sample(
-            x_t, self.__fast_sample_steps, verbose=True
-        )
+        x_0 = self.__denoiser.fast_sample(x_t, self.__fast_sample_steps, verbose=True)
 
         th.save(
             x_0,
@@ -104,9 +92,7 @@ class SaveManager:
             elif not isdir(self.__output_folder_path):
                 raise NotADirectoryError(self.__output_folder_path)
 
-            curr_save_folder = join(
-                self.__output_folder_path, f"save_{self.__curr_save}"
-            )
+            curr_save_folder = join(self.__output_folder_path, f"save_{self.__curr_save}")
 
             if not exists(curr_save_folder):
                 makedirs(curr_save_folder)
