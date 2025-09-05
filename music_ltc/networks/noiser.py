@@ -12,7 +12,7 @@ class Noiser(Diffuser):
         assert x_0.size(0) == t.size(0)
 
         if eps is None:
-            eps = th.rand_like(x_0, device=next(self.buffers()).device)
+            eps = th.randn_like(x_0, device=next(self.buffers()).device)
 
         sqrt_alphas_cum_prod = select_time_scheduler(
             self._sqrt_alphas_cum_prod, t
