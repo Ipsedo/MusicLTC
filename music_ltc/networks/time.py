@@ -41,7 +41,7 @@ class FiLM(nn.Module):
         self.__to_channels = nn.Sequential(
             nn.Linear(time_size, channels * 2),
             nn.Mish(),
-            nn.BatchNorm1d(channels * 2),
+            nn.GroupNorm(4, channels * 2),
             nn.Linear(channels * 2, channels * 2),
         )
 
