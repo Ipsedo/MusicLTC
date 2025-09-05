@@ -22,7 +22,7 @@ class Conv1dBlock(nn.Sequential):
         return self.__out_channels
 
 
-class ChannelOutputBlock(nn.Conv1d):
+class OutputConv1dBlock(nn.Conv1d):
     def __init__(
         self,
         in_channels: int,
