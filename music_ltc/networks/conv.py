@@ -1,10 +1,17 @@
 from torch import nn
 
 
-class ChannelProjectionBlock(nn.Sequential):
-    def __init__(self, in_channels: int, out_channels: int) -> None:
+class Conv1dBlock(nn.Sequential):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int = 3,
+        stride: int = 1,
+        padding: int = 1,
+    ) -> None:
         super().__init__(
-            nn.Conv1d(in_channels, out_channels, 1, 1, 0),
+            nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding),
             nn.Mish(),
             nn.GroupNorm(4, out_channels),
         )
@@ -16,8 +23,15 @@ class ChannelProjectionBlock(nn.Sequential):
 
 
 class ChannelOutputBlock(nn.Conv1d):
-    def __init__(self, in_channels: int, out_channels: int) -> None:
-        super().__init__(in_channels, out_channels, 1, 1, 0)
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int = 3,
+        stride: int = 1,
+        padding: int = 1,
+    ) -> None:
+        super().__init__(in_channels, out_channels, kernel_size, stride, padding)
 
         self.__out_channels = out_channels
 

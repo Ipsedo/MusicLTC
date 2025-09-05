@@ -1,12 +1,7 @@
 import torch as th
 from torch import nn
 
-from .conv import (
-    ChannelOutputBlock,
-    ChannelProjectionBlock,
-    ConvStrideBlock,
-    ConvTransposeStrideBlock,
-)
+from .conv import ChannelOutputBlock, Conv1dBlock, ConvStrideBlock, ConvTransposeStrideBlock
 from .ltc import SimpleLTC
 from .time import FiLM, SequentialTimeWrapper, SinusoidTimeEmbedding, TimeWrapper
 
@@ -27,9 +22,7 @@ class WaveLTC(nn.Module):
         self.__embedding = SinusoidTimeEmbedding(nb_diffusion_steps, time_size)
 
         # encoder
-        self.__first_layer = TimeWrapper(
-            time_size, ChannelProjectionBlock(channels, hidden_channels[0][0])
-        )
+        self.__first_layer = TimeWrapper(time_size, Conv1dBlock(channels, hidden_channels[0][0]))
         self.__encoder = SequentialTimeWrapper(
             time_size,
             [ConvStrideBlock(c_i, c_o) for c_i, c_o in hidden_channels],
@@ -42,7 +35,7 @@ class WaveLTC(nn.Module):
         # decoder
         self.__to_decoder = TimeWrapper(
             time_size,
-            ChannelProjectionBlock(neuron_number, hidden_channels[-1][1]),
+            Conv1dBlock(neuron_number, hidden_channels[-1][1], 1, 1, 0),
         )
 
         self.__decoder = SequentialTimeWrapper(
