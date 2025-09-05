@@ -39,6 +39,7 @@ class AudioSaver(AbstractSaver):
         nb_audio_to_generate: int,
         nb_ticks: int,
         channels: int,
+        fast_sample_steps: int,
     ) -> None:
         super().__init__()
 
@@ -47,6 +48,7 @@ class AudioSaver(AbstractSaver):
         self.__nb_audio_to_generate = nb_audio_to_generate
         self.__nb_ticks = nb_ticks
         self.__channels = channels
+        self.__fast_sample_steps = fast_sample_steps
 
         self.__sample_rate = sample_rate
 
@@ -60,7 +62,9 @@ class AudioSaver(AbstractSaver):
             device=device,
         )
 
-        x_0 = self.__denoiser.sample(x_t, verbose=True)
+        x_0 = self.__denoiser.fast_sample(
+            x_t, self.__fast_sample_steps, verbose=True
+        )
 
         th.save(
             x_0,

@@ -61,6 +61,7 @@ def train_model(
                     train_options.nb_audios_to_generate,
                     2**17,
                     model_options.channels,
+                    train_options.fast_sample_steps,
                 ),
             ],
             train_options.output_dir,

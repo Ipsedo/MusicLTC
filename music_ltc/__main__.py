@@ -65,6 +65,9 @@ def main() -> None:
     )
     train_model_parser.add_argument("--sample-rate", type=int, default=16000)
     train_model_parser.add_argument(
+        "--fast-sample-steps", type=int, default=256
+    )
+    train_model_parser.add_argument(
         "--nb-audios-to-generate", type=int, default=3
     )
     train_model_parser.add_argument("--cuda", action="store_true")
@@ -103,6 +106,7 @@ def main() -> None:
                     batch_size=args.batch_size,
                     epochs=args.epochs,
                     learning_rate=args.learning_rate,
+                    fast_sample_steps=args.fast_sample_steps,
                     sample_rate=args.sample_rate,
                     nb_audios_to_generate=args.nb_audios_to_generate,
                     cuda=args.cuda,

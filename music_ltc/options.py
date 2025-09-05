@@ -36,6 +36,7 @@ class TrainOptions(BaseModel):
     learning_rate: float
     sample_rate: int
     nb_audios_to_generate: int
+    fast_sample_steps: int
     cuda: bool
     dataloader_workers: int
     save_every: int
