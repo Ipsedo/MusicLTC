@@ -15,7 +15,7 @@ def __init_film_linear(lin_model: nn.Module) -> None:
 
 def weights_init(m: nn.Module, tau_0: float) -> None:
     if isinstance(m, (nn.Conv1d, nn.ConvTranspose1d)):
-        nn.init.kaiming_normal_(m.weight)
+        nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
         if m.bias is not None:
             nn.init.zeros_(m.bias)
     elif isinstance(m, FiLM):
