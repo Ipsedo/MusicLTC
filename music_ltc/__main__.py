@@ -53,6 +53,7 @@ def main() -> None:
     train_model_parser.add_argument("--sample-rate", type=int, default=16000)
     train_model_parser.add_argument("--fast-sample-steps", type=int, default=256)
     train_model_parser.add_argument("--nb-audios-to-generate", type=int, default=3)
+    train_model_parser.add_argument("--audios-to-generate-length", type=int, default=2**17)
     train_model_parser.add_argument("--cuda", action="store_true")
     train_model_parser.add_argument("--save-every", type=int, default=512)
     train_model_parser.add_argument("--dataloader-workers", type=int, default=6)
@@ -88,6 +89,7 @@ def main() -> None:
                     fast_sample_steps=args.fast_sample_steps,
                     sample_rate=args.sample_rate,
                     nb_audios_to_generate=args.nb_audios_to_generate,
+                    audios_to_generate_length=args.audios_to_generate_length,
                     cuda=args.cuda,
                     dataloader_workers=args.dataloader_workers,
                     save_every=args.save_every,

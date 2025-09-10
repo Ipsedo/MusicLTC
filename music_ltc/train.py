@@ -49,7 +49,7 @@ def train_model(model_options: ModelOptions, train_options: TrainOptions) -> Non
                     denoiser,
                     train_options.sample_rate,
                     train_options.nb_audios_to_generate,
-                    2**17,
+                    train_options.audios_to_generate_length,
                     model_options.channels,
                     train_options.fast_sample_steps,
                 ),

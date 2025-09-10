@@ -37,6 +37,7 @@ class TrainOptions(BaseModel):
     gamma: float
     sample_rate: int
     nb_audios_to_generate: int
+    audios_to_generate_length: int
     fast_sample_steps: int
     cuda: bool
     dataloader_workers: int
