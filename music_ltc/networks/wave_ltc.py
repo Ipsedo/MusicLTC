@@ -1,3 +1,5 @@
+from functools import partial
+
 import torch as th
 from torch import nn
 
@@ -49,16 +51,7 @@ class WaveLTC(nn.Module):
         )
 
         # init
-        self.__first_layer.apply(weights_init)
-        self.__encoder.apply(weights_init)
-
-        self.__ltc_film.apply(weights_init)
-
-        self.__to_decoder.apply(weights_init)
-        self.__decoder.apply(weights_init)
-
-        self.__to_eps.apply(weights_init)
-        self.__to_v.apply(weights_init)
+        self.apply(partial(weights_init, ltc_unfolding_steps=unfolding_steps))
 
     def forward(self, x_t: th.Tensor, t: th.Tensor) -> tuple[th.Tensor, th.Tensor]:
         transposed_input = x_t.transpose(1, 2)
