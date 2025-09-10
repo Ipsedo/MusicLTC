@@ -26,8 +26,7 @@ def weights_init(m: nn.Module, tau_0: float) -> None:
 
         mu = 1.0 / max(tau_0, 1e-6)
         sigma = 0.25 * mu
-        m.recurrent_weight.data.normal_(mu, sigma)
-        m.recurrent_weight.data.abs_()
+        m.recurrent_weight.data.normal_(mu, sigma).abs_()
     elif isinstance(m, LiquidCell):
         nn.init.normal_(m.a, 0.0, 0.1)
         nn.init.normal_(m.raw_tau, math.log(math.exp(tau_0) - 1.0), 0.5)
