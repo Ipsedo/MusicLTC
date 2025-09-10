@@ -51,7 +51,7 @@ class WaveLTC(nn.Module):
         )
 
         # init
-        self.apply(partial(weights_init, ltc_unfolding_steps=unfolding_steps))
+        self.apply(partial(weights_init, tau_0=delta_t))
 
     def forward(self, x_t: th.Tensor, t: th.Tensor) -> tuple[th.Tensor, th.Tensor]:
         transposed_input = x_t.transpose(1, 2)

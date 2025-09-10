@@ -1,3 +1,5 @@
+import math
+
 from liquid_networks.networks.liquid_cell import CellModel, LiquidCell
 from torch import nn
 
@@ -11,7 +13,7 @@ def __init_film_linear(lin_model: nn.Module) -> None:
             nn.init.zeros_(lin_model.bias)
 
 
-def weights_init(m: nn.Module, ltc_unfolding_steps: int) -> None:
+def weights_init(m: nn.Module, tau_0: float) -> None:
     if isinstance(m, (nn.Conv1d, nn.ConvTranspose1d)):
         nn.init.kaiming_normal_(m.weight)
         if m.bias is not None:
@@ -19,12 +21,13 @@ def weights_init(m: nn.Module, ltc_unfolding_steps: int) -> None:
     elif isinstance(m, FiLM):
         m.apply(__init_film_linear)
     elif isinstance(m, CellModel):
-        nn.init.normal_(m.weight, 0.0, 1.0 / ltc_unfolding_steps)
+        nn.init.xavier_normal_(m.weight, gain=1.0)
+        nn.init.normal_(m.bias, 0.0, 0.25)
 
-        m.recurrent_weight.data.normal_(0.0, 1.0 / ltc_unfolding_steps)
+        mu = 1.0 / max(tau_0, 1e-6)
+        sigma = 0.25 * mu
+        m.recurrent_weight.data.normal_(mu, sigma)
         m.recurrent_weight.data.abs_()
-
-        nn.init.normal_(m.bias, 0.0, 1.0 / ltc_unfolding_steps)
     elif isinstance(m, LiquidCell):
-        nn.init.normal_(m.a, 0.0, 1.0 / ltc_unfolding_steps)
-        nn.init.normal_(m.log_tau, 0.0, 1.0 / ltc_unfolding_steps)
+        nn.init.normal_(m.a, 0.0, 0.1)
+        nn.init.normal_(m.raw_tau, math.log(math.exp(tau_0) - 1.0), 0.5)
