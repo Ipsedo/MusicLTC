@@ -24,7 +24,7 @@ def weights_init(m: nn.Module, ltc_unfolding_steps: int) -> None:
         m.recurrent_weight.data.normal_(0.0, 1.0 / ltc_unfolding_steps)
         m.recurrent_weight.data.abs_()
 
-        nn.init.normal_(m.bias, 0.0, 1e-1)
+        nn.init.normal_(m.bias, 0.0, 1.0 / ltc_unfolding_steps)
     elif isinstance(m, LiquidCell):
         nn.init.normal_(m.a, 0.0, 1.0 / ltc_unfolding_steps)
         nn.init.normal_(m.log_tau, 0.0, 1.0 / ltc_unfolding_steps)
