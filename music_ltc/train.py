@@ -87,6 +87,7 @@ def train_model(model_options: ModelOptions, train_options: TrainOptions) -> Non
 
                 optim.zero_grad(set_to_none=True)
                 loss.backward()
+                th.nn.utils.clip_grad_norm_(denoiser.parameters(), 1.0)
                 optim.step()
 
                 grad_norm = denoiser.grad_norm()

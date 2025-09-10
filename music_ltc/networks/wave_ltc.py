@@ -4,6 +4,7 @@ from torch import nn
 from .conv import Conv1dBlock, ConvStrideBlock, ConvTransposeStrideBlock, OutputConv1dBlock
 from .ltc import SimpleLTC
 from .time import FiLM, SequentialTimeWrapper, SinusoidTimeEmbedding, TimeWrapper
+from .weight_init import weights_init
 
 
 class WaveLTC(nn.Module):
@@ -46,6 +47,18 @@ class WaveLTC(nn.Module):
         self.__to_v = nn.Sequential(
             OutputConv1dBlock(hidden_channels[0][0], channels), nn.Sigmoid()
         )
+
+        # init
+        self.__first_layer.apply(weights_init)
+        self.__encoder.apply(weights_init)
+
+        self.__ltc_film.apply(weights_init)
+
+        self.__to_decoder.apply(weights_init)
+        self.__decoder.apply(weights_init)
+
+        self.__to_eps.apply(weights_init)
+        self.__to_v.apply(weights_init)
 
     def forward(self, x_t: th.Tensor, t: th.Tensor) -> tuple[th.Tensor, th.Tensor]:
         transposed_input = x_t.transpose(1, 2)

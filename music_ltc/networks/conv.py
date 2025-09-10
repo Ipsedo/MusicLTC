@@ -13,7 +13,7 @@ class Conv1dBlock(nn.Sequential):
     ) -> None:
         super().__init__(
             weight_norm(nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding)),
-            nn.Mish(),
+            nn.ELU(),
         )
 
         self.__out_channels = out_channels
@@ -46,7 +46,7 @@ class ConvStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
             weight_norm(nn.Conv1d(in_channels, out_channels, 8, 4, 2)),
-            nn.Mish(),
+            nn.ELU(),
         )
 
         self.__out_channels = out_channels
@@ -62,7 +62,7 @@ class ConvTransposeStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
             weight_norm(nn.ConvTranspose1d(in_channels, out_channels, 8, 4, 2, 0)),
-            nn.Mish(),
+            nn.ELU(),
         )
 
         self.__out_channels = out_channels

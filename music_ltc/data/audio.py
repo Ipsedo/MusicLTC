@@ -9,7 +9,7 @@ def open_audio_and_convert_sample_rate(
     raw_audio, sr = th_audio.load_with_torchcodec(audio_path)
 
     resampled_raw_audio: th.Tensor = th_audio.functional.resample(raw_audio, sr, to_sample_rate)
-    return resampled_raw_audio
+    return resampled_raw_audio / (resampled_raw_audio.abs().max() + 1e-8)
 
 
 def split_audio(waveform_tensor: th.Tensor, sequence_length: int) -> list[th.Tensor]:

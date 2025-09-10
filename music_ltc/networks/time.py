@@ -40,7 +40,7 @@ class FiLM(nn.Module):
 
         self.__to_channels = nn.Sequential(
             weight_norm(nn.Linear(time_size, channels * 2)),
-            nn.Mish(),
+            nn.SiLU(),
             weight_norm(nn.Linear(channels * 2, channels * 2)),
         )
 
