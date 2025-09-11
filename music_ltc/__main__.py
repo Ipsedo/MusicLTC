@@ -50,7 +50,7 @@ def main() -> None:
     train_model_parser.add_argument("-o", "--output-dir", type=str, required=True)
     train_model_parser.add_argument("--batch-size", type=int, default=80)
     train_model_parser.add_argument("--epochs", type=int, default=1000)
-    train_model_parser.add_argument("--learning-rate", type=float, default=1e-3)
+    train_model_parser.add_argument("--learning-rate", type=float, default=1e-4)
     train_model_parser.add_argument("--gamma", type=float, default=10.0)
     train_model_parser.add_argument("--sample-rate", type=int, default=16000)
     train_model_parser.add_argument("--fast-sample-steps", type=int, default=256)
