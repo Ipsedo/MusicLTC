@@ -36,27 +36,29 @@ def main() -> None:
     model_parser.add_argument("--diffusion-steps", type=int, default=4096)
     model_parser.add_argument("--time-size", type=int, default=32)
     model_parser.add_argument("--channels", type=int, default=2)
-    model_parser.add_argument("--hidden-channels", type=_channels, required=True)
+    model_parser.add_argument(
+        "--hidden-channels", type=_channels, default=[(16, 32), (32, 64), (64, 128), (128, 256)]
+    )
     model_parser.add_argument("--neuron-number", type=int, default=64)
     model_parser.add_argument("--unfolding-steps", type=int, default=6)
-    model_parser.add_argument("--delta-t", type=float, default=1.0)
+    model_parser.add_argument("--delta-t", type=float, default=1.6e-2)
 
     model_parser_subparser = model_parser.add_subparsers(dest="run", required=True)
 
     train_model_parser = model_parser_subparser.add_parser(name="train")
     train_model_parser.add_argument("dataset_path", type=str)
     train_model_parser.add_argument("-o", "--output-dir", type=str, required=True)
-    train_model_parser.add_argument("--batch-size", type=int, default=32)
-    train_model_parser.add_argument("--epochs", type=int, default=200)
-    train_model_parser.add_argument("--learning-rate", type=float, default=1e-4)
+    train_model_parser.add_argument("--batch-size", type=int, default=80)
+    train_model_parser.add_argument("--epochs", type=int, default=1000)
+    train_model_parser.add_argument("--learning-rate", type=float, default=1e-3)
     train_model_parser.add_argument("--gamma", type=float, default=10.0)
     train_model_parser.add_argument("--sample-rate", type=int, default=16000)
     train_model_parser.add_argument("--fast-sample-steps", type=int, default=256)
     train_model_parser.add_argument("--nb-audios-to-generate", type=int, default=3)
     train_model_parser.add_argument("--audios-to-generate-length", type=int, default=2**17)
     train_model_parser.add_argument("--cuda", action="store_true")
-    train_model_parser.add_argument("--save-every", type=int, default=512)
-    train_model_parser.add_argument("--dataloader-workers", type=int, default=6)
+    train_model_parser.add_argument("--save-every", type=int, default=1024)
+    train_model_parser.add_argument("--dataloader-workers", type=int, default=8)
 
     args = parser.parse_args()
 
