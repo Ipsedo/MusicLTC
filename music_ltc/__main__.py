@@ -33,7 +33,7 @@ def main() -> None:
     create_dataset_parser.add_argument("--sequence-length", type=int, default=2**17)
 
     model_parser = sub_parsers.add_parser(name="model")
-    model_parser.add_argument("--diffusion-steps", type=int, default=1024)
+    model_parser.add_argument("--diffusion-steps", type=int, default=4096)
     model_parser.add_argument("--time-size", type=int, default=32)
     model_parser.add_argument("--channels", type=int, default=2)
     model_parser.add_argument("--hidden-channels", type=_channels, required=True)
@@ -49,7 +49,7 @@ def main() -> None:
     train_model_parser.add_argument("--batch-size", type=int, default=32)
     train_model_parser.add_argument("--epochs", type=int, default=200)
     train_model_parser.add_argument("--learning-rate", type=float, default=1e-4)
-    train_model_parser.add_argument("--gamma", type=float, default=1e-3)
+    train_model_parser.add_argument("--gamma", type=float, default=10.0)
     train_model_parser.add_argument("--sample-rate", type=int, default=16000)
     train_model_parser.add_argument("--fast-sample-steps", type=int, default=256)
     train_model_parser.add_argument("--nb-audios-to-generate", type=int, default=3)

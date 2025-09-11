@@ -30,3 +30,7 @@ def weights_init(m: nn.Module, tau_0: float) -> None:
     elif isinstance(m, LiquidCell):
         nn.init.normal_(m.a, 0.0, 0.1)
         nn.init.normal_(m.raw_tau, math.log(math.exp(tau_0) - 1.0), 0.5)
+    elif isinstance(m, (nn.GroupNorm, nn.LayerNorm)):
+        if m.weight is not None:
+            nn.init.constant_(m.weight, 1.0)
+            nn.init.constant_(m.bias, 0.0)

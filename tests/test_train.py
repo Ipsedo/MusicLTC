@@ -26,8 +26,8 @@ def test_train_model() -> None:
             diffusion_steps=4,
             time_size=2,
             channels=channels,
-            hidden_channels=[(2, 2)],
-            neuron_number=4,
+            hidden_channels=[(8, 8)],
+            neuron_number=8,
             unfolding_steps=2,
             delta_t=1.0,
         )

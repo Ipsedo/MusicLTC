@@ -9,10 +9,10 @@ from music_ltc.networks.wave_ltc import WaveLTC
     "hidden_channels",
     [
         [
-            (4, 4),
-            (4, 8),
+            (8, 8),
+            (8, 16),
         ],
-        [(4, 4)],
+        [(8, 8)],
     ],
 )
 @pytest.mark.parametrize("length", [16, 32])

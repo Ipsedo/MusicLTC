@@ -1,5 +1,5 @@
+import torch as th
 from torch import nn
-from torch.nn.utils.parametrizations import weight_norm
 
 
 class Conv1dBlock(nn.Sequential):
@@ -12,8 +12,9 @@ class Conv1dBlock(nn.Sequential):
         padding: int = 1,
     ) -> None:
         super().__init__(
-            weight_norm(nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding)),
+            nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding),
             nn.ELU(),
+            nn.GroupNorm(8, out_channels),
         )
 
         self.__out_channels = out_channels
@@ -22,7 +23,7 @@ class Conv1dBlock(nn.Sequential):
         return self.__out_channels
 
 
-class OutputConv1dBlock(nn.Conv1d):
+class OutputConv1dBlock(nn.Module):
     def __init__(
         self,
         in_channels: int,
@@ -31,9 +32,14 @@ class OutputConv1dBlock(nn.Conv1d):
         stride: int = 1,
         padding: int = 1,
     ) -> None:
-        super().__init__(in_channels, out_channels, kernel_size, stride, padding)
+        super().__init__()
+        self.__conv = nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding)
 
         self.__out_channels = out_channels
+
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        out: th.Tensor = self.__conv(x)
+        return out
 
     def get_out_channels(self) -> int:
         return self.__out_channels
@@ -45,8 +51,9 @@ class OutputConv1dBlock(nn.Conv1d):
 class ConvStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
-            weight_norm(nn.Conv1d(in_channels, out_channels, 8, 4, 2)),
+            nn.Conv1d(in_channels, out_channels, 8, 4, 2),
             nn.ELU(),
+            nn.GroupNorm(8, out_channels),
         )
 
         self.__out_channels = out_channels
@@ -61,8 +68,9 @@ class ConvStrideBlock(nn.Sequential):
 class ConvTransposeStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
-            weight_norm(nn.ConvTranspose1d(in_channels, out_channels, 8, 4, 2, 0)),
+            nn.ConvTranspose1d(in_channels, out_channels, 8, 4, 2, 0),
             nn.ELU(),
+            nn.GroupNorm(8, out_channels),
         )
 
         self.__out_channels = out_channels
