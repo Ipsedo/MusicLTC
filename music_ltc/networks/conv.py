@@ -14,7 +14,6 @@ class Conv1dBlock(nn.Sequential):
         super().__init__(
             nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding),
             nn.ELU(),
-            nn.GroupNorm(8, out_channels),
         )
 
         self.__out_channels = out_channels
@@ -51,9 +50,10 @@ class OutputConv1dBlock(nn.Module):
 class ConvStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
-            nn.Conv1d(in_channels, out_channels, 8, 4, 2),
+            nn.Conv1d(in_channels, out_channels, 3, 1, 1),
             nn.ELU(),
-            nn.GroupNorm(8, out_channels),
+            nn.Conv1d(out_channels, out_channels, 8, 4, 2),
+            nn.ELU(),
         )
 
         self.__out_channels = out_channels
@@ -68,9 +68,10 @@ class ConvStrideBlock(nn.Sequential):
 class ConvTransposeStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
-            nn.ConvTranspose1d(in_channels, out_channels, 8, 4, 2, 0),
+            nn.ConvTranspose1d(in_channels, in_channels, 8, 4, 2, 0),
             nn.ELU(),
-            nn.GroupNorm(8, out_channels),
+            nn.Conv1d(in_channels, out_channels, 3, 1, 1),
+            nn.ELU(),
         )
 
         self.__out_channels = out_channels

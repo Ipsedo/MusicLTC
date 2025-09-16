@@ -37,9 +37,9 @@ def main() -> None:
     model_parser.add_argument("--time-size", type=int, default=32)
     model_parser.add_argument("--channels", type=int, default=2)
     model_parser.add_argument(
-        "--hidden-channels", type=_channels, default=[(32, 64), (64, 96), (96, 128), (128, 160)]
+        "--hidden-channels", type=_channels, default=[(16, 32), (32, 64), (64, 128), (128, 256)]
     )
-    model_parser.add_argument("--neuron-number", type=int, default=64)
+    model_parser.add_argument("--neuron-number", type=int, default=128)
     model_parser.add_argument("--unfolding-steps", type=int, default=6)
     model_parser.add_argument("--delta-t", type=float, default=1.6e-2)
 
@@ -48,10 +48,10 @@ def main() -> None:
     train_model_parser = model_parser_subparser.add_parser(name="train")
     train_model_parser.add_argument("dataset_path", type=str)
     train_model_parser.add_argument("-o", "--output-dir", type=str, required=True)
-    train_model_parser.add_argument("--batch-size", type=int, default=40)
+    train_model_parser.add_argument("--batch-size", type=int, default=32)
     train_model_parser.add_argument("--epochs", type=int, default=1000)
     train_model_parser.add_argument("--learning-rate", type=float, default=1e-3)
-    train_model_parser.add_argument("--gamma", type=float, default=10.0)
+    train_model_parser.add_argument("--gamma", type=float, default=1e-2)
     train_model_parser.add_argument("--sample-rate", type=int, default=16000)
     train_model_parser.add_argument("--fast-sample-steps", type=int, default=256)
     train_model_parser.add_argument("--nb-audios-to-generate", type=int, default=3)
