@@ -5,7 +5,7 @@ import torch as th
 from tqdm import tqdm
 
 from .diffusion import Diffuser, select_time_scheduler
-from .wave_ltc import WaveLTC
+from .unet import WaveUNetLTC
 
 
 class Denoiser(Diffuser):
@@ -13,15 +13,14 @@ class Denoiser(Diffuser):
         self,
         steps: int,
         time_size: int,
-        channels: int,
-        hidden_channels: list[tuple[int, int]],
+        channels: list[tuple[int, int]],
         neuron_number: int,
         unfolding_steps: int,
         delta_t: float,
     ) -> None:
         super().__init__(steps)
 
-        self.__channels = channels
+        self.__channels = channels[0][0]
 
         self._sqrt_alpha: th.Tensor
         self._sqrt_betas: th.Tensor
@@ -30,12 +29,11 @@ class Denoiser(Diffuser):
 
         self.register_buffer("_sqrt_betas", th.sqrt(self._betas))
 
-        self.__network = WaveLTC(
+        self.__network = WaveUNetLTC(
             neuron_number,
             unfolding_steps,
             delta_t,
             channels,
-            hidden_channels,
             steps,
             time_size,
         )

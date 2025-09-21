@@ -7,8 +7,7 @@ from .networks.noiser import Noiser
 class ModelOptions(BaseModel):
     diffusion_steps: int
     time_size: int
-    channels: int
-    hidden_channels: list[tuple[int, int]]
+    channels: list[tuple[int, int]]
     neuron_number: int
     unfolding_steps: int
     delta_t: float
@@ -21,7 +20,6 @@ class ModelOptions(BaseModel):
             self.diffusion_steps,
             self.time_size,
             self.channels,
-            self.hidden_channels,
             self.neuron_number,
             self.unfolding_steps,
             self.delta_t,

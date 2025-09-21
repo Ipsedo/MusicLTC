@@ -16,7 +16,7 @@ def test_denoiser(
     time_size: int,
 ) -> None:
     in_channels = 2
-    denoiser = Denoiser(steps, time_size, in_channels, [(8, 8)], 4, 6, 1.0)
+    denoiser = Denoiser(steps, time_size, [(in_channels, 8)], 4, 6, 1.0)
 
     denoiser.eval()
 

@@ -35,9 +35,8 @@ def main() -> None:
     model_parser = sub_parsers.add_parser(name="model")
     model_parser.add_argument("--diffusion-steps", type=int, default=4096)
     model_parser.add_argument("--time-size", type=int, default=32)
-    model_parser.add_argument("--channels", type=int, default=2)
     model_parser.add_argument(
-        "--hidden-channels", type=_channels, default=[(16, 32), (32, 64), (64, 128), (128, 256)]
+        "--channels", type=_channels, default=[(2, 32), (32, 64), (64, 128), (128, 256)]
     )
     model_parser.add_argument("--neuron-number", type=int, default=128)
     model_parser.add_argument("--unfolding-steps", type=int, default=6)
@@ -48,7 +47,7 @@ def main() -> None:
     train_model_parser = model_parser_subparser.add_parser(name="train")
     train_model_parser.add_argument("dataset_path", type=str)
     train_model_parser.add_argument("-o", "--output-dir", type=str, required=True)
-    train_model_parser.add_argument("--batch-size", type=int, default=32)
+    train_model_parser.add_argument("--batch-size", type=int, default=20)
     train_model_parser.add_argument("--epochs", type=int, default=1000)
     train_model_parser.add_argument("--learning-rate", type=float, default=1e-3)
     train_model_parser.add_argument("--gamma", type=float, default=1e-2)
@@ -72,7 +71,6 @@ def main() -> None:
             diffusion_steps=args.diffusion_steps,
             time_size=args.time_size,
             channels=args.channels,
-            hidden_channels=args.hidden_channels,
             neuron_number=args.neuron_number,
             unfolding_steps=args.unfolding_steps,
             delta_t=args.delta_t,

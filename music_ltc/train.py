@@ -50,7 +50,7 @@ def train_model(model_options: ModelOptions, train_options: TrainOptions) -> Non
                     train_options.sample_rate,
                     train_options.nb_audios_to_generate,
                     train_options.audios_to_generate_length,
-                    model_options.channels,
+                    model_options.channels[0][0],
                     train_options.fast_sample_steps,
                 ),
             ],
@@ -79,7 +79,7 @@ def train_model(model_options: ModelOptions, train_options: TrainOptions) -> Non
                 loss_mse = mse(eps, eps_theta).mean()
 
                 q_mu, q_var = noiser.posterior(x_t, x_0, t)
-                p_mu, p_var = denoiser.prior(x_t, t, eps_theta, v_theta)
+                p_mu, p_var = denoiser.prior(x_t, t, eps_theta.detach(), v_theta)
 
                 loss_kl = var_kl_div(p_mu, p_var, q_mu, q_var).mean()
 
