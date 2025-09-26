@@ -1,5 +1,6 @@
 import torch as th
 from torch import nn
+from torch.nn.utils.parametrizations import weight_norm
 
 
 class Conv1dBlock(nn.Sequential):
@@ -9,8 +10,8 @@ class Conv1dBlock(nn.Sequential):
         out_channels: int,
     ) -> None:
         super().__init__(
-            nn.Conv1d(in_channels, out_channels, 3, 1, 1),
-            nn.ELU(),
+            weight_norm(nn.Conv1d(in_channels, out_channels, 3, 1, 1)),
+            nn.Mish(),
         )
 
         self.__out_channels = out_channels
@@ -29,7 +30,9 @@ class OutputConv1dBlock(nn.Module):
         padding: int = 1,
     ) -> None:
         super().__init__()
-        self.__conv = nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding)
+        self.__conv = weight_norm(
+            nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding)
+        )
 
         self.__out_channels = out_channels
 
@@ -48,8 +51,8 @@ class ConvTranspose1dBlock(nn.Sequential):
         out_channels: int,
     ) -> None:
         super().__init__(
-            nn.ConvTranspose1d(in_channels, out_channels, 3, 1, 1),
-            nn.ELU(),
+            weight_norm(nn.ConvTranspose1d(in_channels, out_channels, 3, 1, 1)),
+            nn.Mish(),
         )
 
         self.__out_channels = out_channels
@@ -64,8 +67,8 @@ class ConvTranspose1dBlock(nn.Sequential):
 class ConvStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
-            nn.Conv1d(in_channels, out_channels, 8, 4, 2),
-            nn.ELU(),
+            weight_norm(nn.Conv1d(in_channels, out_channels, 8, 4, 2)),
+            nn.Mish(),
         )
 
         self.__out_channels = out_channels
@@ -80,8 +83,8 @@ class ConvStrideBlock(nn.Sequential):
 class ConvTransposeStrideBlock(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__(
-            nn.ConvTranspose1d(in_channels, out_channels, 8, 4, 2, 0),
-            nn.ELU(),
+            weight_norm(nn.ConvTranspose1d(in_channels, out_channels, 8, 4, 2, 0)),
+            nn.Mish(),
         )
 
         self.__out_channels = out_channels

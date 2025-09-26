@@ -40,7 +40,7 @@ def main() -> None:
     )
     model_parser.add_argument("--neuron-number", type=int, default=128)
     model_parser.add_argument("--unfolding-steps", type=int, default=6)
-    model_parser.add_argument("--delta-t", type=float, default=1.6e-2)
+    model_parser.add_argument("--delta-t", type=float, default=1.0)
 
     model_parser_subparser = model_parser.add_subparsers(dest="run", required=True)
 
@@ -50,7 +50,7 @@ def main() -> None:
     train_model_parser.add_argument("--batch-size", type=int, default=20)
     train_model_parser.add_argument("--epochs", type=int, default=1000)
     train_model_parser.add_argument("--learning-rate", type=float, default=1e-3)
-    train_model_parser.add_argument("--gamma", type=float, default=1e-2)
+    train_model_parser.add_argument("--gamma", type=float, default=1.0)
     train_model_parser.add_argument("--sample-rate", type=int, default=16000)
     train_model_parser.add_argument("--fast-sample-steps", type=int, default=256)
     train_model_parser.add_argument("--nb-audios-to-generate", type=int, default=3)
